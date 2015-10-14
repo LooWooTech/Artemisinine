@@ -4,7 +4,121 @@
 }
 
 <style>
-
+     html,body,#map{
+        height: 100%; width: 100%; margin: 0; padding: 0; 
+    }
+      #search {
+         display: block;
+         position: absolute;
+         z-index: 2;
+         top: 20px;
+         left: 74px;
+      }
+       #menu{
+         position:absolute;
+         z-index:2;
+         top:20px;
+         left:74px;
+     }
 </style>
 
+<script>
+    require([
+        "esri/map","esri/layers/FeatureLayer","esri/dijit/Search","esri/InfoTemplate",
+        "esri/layers/ArcGISTiledMapServiceLayer",
+        "esri/dijit/InfoWindowLite","dojo/dom-construct",
+        "dojo/domReady!"
+    ], function (
+        Map,FeatureLayer,Search,InfoTemplate,
+        Tiled,
+        InfoWindowLite,domConstruct
+        ) {
+        var map = new Map("map", {
+            logo:false
+        });
+        var tiled = new Tiled("http://10.22.102.18:6080/arcgis/rest/services/NN/MapServer");
+        map.addLayer(tiled);
+
+        var infoWindow = new InfoWindowLite(null, domConstruct.create("div", null, null, map.root));
+        infoWindow.startup();
+        map.setInfoWindow(infoWindow);
+        var template = new InfoTemplate();
+        template.setTitle("<b>${JGID}-${NAME}<b/>");
+        template.setContent("机构ID：${JGID} <br/> 医疗名称：${NAME}");
+
+        var featureLayer = new FeatureLayer("http://10.22.102.18:6080/arcgis/rest/services/NN/MapServer/1", {
+            mode: FeatureLayer.MODE_ONDEMAND,
+            infoTemplate: template,
+            outFields: ["JGID", "NAME"]
+        });
+
+        map.addLayer(featureLayer);
+
+        map.infoWindow.resize(300, 100);
+
+        var s = new Search({
+            sources: [{
+                featureLayer: new FeatureLayer("http://10.22.102.18:6080/arcgis/rest/services/NN/MapServer/1", {
+                    outFields: ["*"],
+                    infoTemplate: new InfoTemplate("医疗机构", "医疗机构ID：${JGID}<br/> 机构名称：${NAME}<br/>")
+                }),
+                searchFields: ["JGID"],
+                outFields: ["JGID", "NAME"],
+                displayField: "JGID",
+                exactMatch: false,
+                suggestionTemplate: "${JGID}",
+                name: "医疗机构",
+                enableSuggestions: true
+            }],
+            enableButtonMode: true,
+            enableLabel: false,
+            enableInfoWindow: true,
+            showInfoWindowOnSelect: false,
+            map: map
+        }, "search");
+        s.startup();
+    })
+</script>
+<div id="search"></div>
+<div class="row">
+    <div id="menu" class="col-lg-8 col-lg-offset-2">
+        <nav class="navbar navbar-inverse">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapse" data-toggle="collapse" data-target="#navbar-menu" aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="/Home/Index">疾病大数据</a>
+                </div>
+
+                <div class="collapse navbar-collapse" id="navbar-menu">
+                    <ul class="nav navbar-nav">
+                        <li><a href="#">地图<span class="sr-only">(current)</span></a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">地图控制<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="" id="">卫星影像</a></li>
+                                <li><a href="" id="">医疗机构</a></li>
+                                <li><a href="" id=""></a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">疾病数据<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#">2015</a></li>
+                                <li><a href="#">2015</a></li>
+                                <li><a href="#">2015</a></li>
+                                <li><a href="javascript:void(0)" id="TTime">疾病演变</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#">Link</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
+</div>
 <div id="map"></div>
