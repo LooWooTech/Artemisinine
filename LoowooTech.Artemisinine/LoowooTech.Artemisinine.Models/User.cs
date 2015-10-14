@@ -10,6 +10,10 @@ namespace LoowooTech.Artemisinine.Models
     [Table("users")]
     public class User
     {
+        public User()
+        {
+            LastLoginTime = DateTime.Now;
+        }
         [Key]
         [DatabaseGenerated(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.Identity)]
         public int ID { get; set; }

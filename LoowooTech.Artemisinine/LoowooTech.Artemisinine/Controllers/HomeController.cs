@@ -34,21 +34,20 @@ namespace LoowooTech.Artemisinine.Controllers
         }
 
         [HttpPost]
-        public ActionResult Login(User user)
+        public ActionResult Login(string Name,string Password)
         {
-            if (string.IsNullOrEmpty(user.Name) || string.IsNullOrEmpty(user.Password))
+            if (string.IsNullOrEmpty(Name) || string.IsNullOrEmpty(Password))
             {
-                throw new ArgumentException("用户名为空或者密码为空！");
+                throw new ArgumentException("用户名或者密码为空!");
             }
-            if (Core.UserManager.Login(user))
+            var user = Core.UserManager.Search(Name, Password.MD5());
+            if (user == null)
             {
-                HttpContext.SaveAuth(user);
-                return View();
+                throw new ArgumentException("未找到相关用户信息!");
             }
-            else
-            {
-                throw new ArgumentException("登录失败！用户名或者密码不正确");
-            }
+            Core.UserManager.Update(user, Request.UserHostAddress);
+            HttpContext.SaveAuth(user);
+            return RedirectToAction("Index");
         }
 
     }

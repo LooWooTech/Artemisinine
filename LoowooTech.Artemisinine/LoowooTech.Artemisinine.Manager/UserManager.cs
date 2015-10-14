@@ -9,24 +9,43 @@ namespace LoowooTech.Artemisinine.Manager
 {
     public class UserManager:ManagerBase
     {
-        public bool Login(User user)
+        public User Search(string Name,string Password)
         {
             using (var db = GetARDataContext())
             {
-                var entity = db.Users.FirstOrDefault(e => e.Name == user.Name&&e.Password==user.Password.MD5());
-                if (entity != null)
-                {
-                    return 
-                }
+                return db.Users.FirstOrDefault(e => e.Name == Name && e.Password == Password);
             }
-            return false;
         }
 
-        public void Update(User user)
+        public void Update(User user,string IP=null)
         {
             using (var db = GetARDataContext())
             {
-                var entity=db.Users.fir
+                var entity = db.Users.Find(user.ID);
+                entity.LastLoginTime = DateTime.Now;
+                if (!string.IsNullOrEmpty(IP))
+                {
+                    entity.LastLoginIP = IP;
+                }
+                db.SaveChanges();
+            } 
+        }
+
+        public int Add(User user)
+        {
+            using (var db = GetARDataContext())
+            {
+                db.Users.Add(user);
+                db.SaveChanges();
+                return user.ID;
+            }
+        }
+
+        public List<User> GetList()
+        {
+            using (var db = GetARDataContext())
+            {
+                return db.Users.ToList();
             }
         }
     }

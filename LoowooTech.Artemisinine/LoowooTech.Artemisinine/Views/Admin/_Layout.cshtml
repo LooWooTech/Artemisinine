@@ -1,0 +1,15 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var action = Request.RequestContext.RouteData.Values["action"].ToString();
+}
+
+@RenderBody()
+
+@section nav{
+    <ul class="nav navbar-nav navbar-right">
+        <li class="@(action=="Index"?"active":null)"><a href="/Admin/Index"><i class="glyphicon glyphicon-home"></i>&nbsp;首页</a></li>
+        <li class="@(action=="Upload"?"active":null)"><a href="/Admin/Upload"><i class="glyphicon glyphicon-cloud-upload"></i>&nbsp;上传疾病数据</a></li>
+        <li class=""><a href="/Map/Index"><i class="glyphicon glyphicon-map-marker"></i>疾病</a></li>
+        <li class="@(action=="Users"?"active":null)"><a href="/Admin/Users"><i class="glyphicon glyphicon-user"></i>&nbsp;用户管理</a></li>
+    </ul>
+}

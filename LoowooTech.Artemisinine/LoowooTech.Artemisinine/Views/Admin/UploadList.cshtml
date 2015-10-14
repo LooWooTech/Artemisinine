@@ -1,0 +1,27 @@
+﻿@using LoowooTech.Artemisinine.Common;
+@{
+    ViewBag.Title = "上传疾病数据历史";
+    Layout = "~/Views/Admin/_Layout.cshtml";
+    List<LoowooTech.Artemisinine.Models.UploadFile> List = ViewBag.List;
+    int Serial=1;
+}
+
+<table class="table table-bordered">
+    <tr>
+        <th>序号</th>
+        <th>文件名</th>
+        <th>上传日期</th>
+        <th>疾病事件</th>
+        <th>数据读取状态</th>
+    </tr>
+    @foreach (var item in List)
+    {
+        <tr>
+            <td>@(Serial++)</td>
+            <td>@(item.FileName)</td>
+            <td>@(item.CreateTime)</td>
+            <td>@(item.Thing)</td>
+            <td>@(item.State.GetDescription())</td>
+        </tr>
+    }
+</table>

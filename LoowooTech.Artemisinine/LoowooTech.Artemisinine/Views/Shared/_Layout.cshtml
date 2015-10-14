@@ -14,6 +14,9 @@
             padding-top:10px;
         }
     </style>
+    @{
+        string name = System.Threading.Thread.CurrentPrincipal.Identity.Name;
+    }
 </head>
 <body>
     <div class="container">
@@ -32,7 +35,18 @@
                     <ul class="nav navbar-nav">
                         @RenderSection("nav", false)
                     </ul>
-                    <ul class="nav navbar-nav navbar-right"></ul>
+                    <ul class="nav navbar-nav navbar-right">
+                         @if (!string.IsNullOrEmpty(name))
+                         {
+                             <li class="dropdown">
+                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="glyphicon glyphicon-cloud"></i>&nbsp;账户<span class="caret"></span></a>
+                                 <ul class="dropdown-menu">
+                                     <li><a href=""><i class="glyphicon glyphicon-cog"></i>&nbsp;密码修改</a></li>
+                                     <li><a href=""><i class="glyphicon glyphicon-user"></i>&nbsp;@(name)</a></li>
+                                 </ul>
+                             </li>
+                         }
+                    </ul>
                 </div>
             </div>
         </div>

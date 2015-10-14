@@ -5,7 +5,7 @@ using System.Web;
 
 namespace LoowooTech.Artemisinine.Models
 {
-    public class UserAuthorizeAttribut:System.Web.Mvc.AuthorizeAttribute
+    public class UserAuthorizeAttribute:System.Web.Mvc.AuthorizeAttribute
     {
         protected override bool AuthorizeCore(HttpContextBase httpContext)
         {
