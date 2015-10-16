@@ -47,8 +47,9 @@ namespace LoowooTech.Artemisinine.Common
             {
                 fileName = fileName.Substring(fileName.Length - 100);
             }
-            file.SaveAs(GetAbsoluteUploadDirectory(fileName));
-            return UploadDirectory + fileName;
+            var fullpath = GetAbsoluteUploadDirectory(fileName);
+            file.SaveAs(fullpath);
+            return fullpath;//返回全路径
         }
     }
 }

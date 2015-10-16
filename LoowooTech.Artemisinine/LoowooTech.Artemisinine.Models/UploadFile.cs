@@ -33,7 +33,7 @@ namespace LoowooTech.Artemisinine.Models
         public UploadFileProcessState State { get; set; }
         [MaxLength(1023)]
         public string ProcessMessage { get; set; }
-        [MaxLength(127)]
+        [MaxLength(1023)]
         public string SavePath { get; set; }
     }
 

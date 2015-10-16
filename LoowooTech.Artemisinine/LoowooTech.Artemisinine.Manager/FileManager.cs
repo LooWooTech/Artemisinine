@@ -25,5 +25,13 @@ namespace LoowooTech.Artemisinine.Manager
                 return db.Files.ToList();
             }
         }
+
+        public UploadFile GetAnalyzeFile()
+        {
+            using (var db = GetARDataContext())
+            {
+                return db.Files.FirstOrDefault(e => e.State == UploadFileProcessState.UnProcessed);
+            }
+        }
     }
 }
