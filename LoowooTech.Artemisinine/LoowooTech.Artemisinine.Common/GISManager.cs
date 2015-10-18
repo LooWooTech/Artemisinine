@@ -15,6 +15,7 @@ namespace LoowooTech.Artemisinine.Common
     public static class GISManager
     {
         private static string HospitalPath { get; set; }
+        private static string HospitalName { get; set; }
         private static XmlDocument configXml { get; set; }
         private static string Server { get; set; }
         private static string Instance { get; set; }
@@ -29,6 +30,7 @@ namespace LoowooTech.Artemisinine.Common
             Folder = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data");
             configXml = new XmlDocument();
             configXml.Load(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, System.Configuration.ConfigurationManager.AppSettings["FIELDS"]));
+            HospitalName = System.Configuration.ConfigurationManager.AppSettings["HNAME"];
             Server = System.Configuration.ConfigurationManager.AppSettings["SERVER"];
             Instance = System.Configuration.ConfigurationManager.AppSettings["INSTANCE"];
             User = System.Configuration.ConfigurationManager.AppSettings["USER"];
@@ -60,7 +62,7 @@ namespace LoowooTech.Artemisinine.Common
             return list;
         }
 
-        private static IFeatureClass Create(IFeatureWorkspace featureWorkspace, string Name, esriGeometryType esriGeometryType)
+        private static IFeatureClass Create(IFeatureWorkspace featureWorkspace, string Name, esriGeometryType esriGeometryType,string ObjectID)
         {
             IFields pFields = new FieldsClass();
             IFieldsEdit pFieldsEdit = pFields as IFieldsEdit;
@@ -82,7 +84,7 @@ namespace LoowooTech.Artemisinine.Common
 
             pField = new FieldClass();
             pFieldEdit = pField as IFieldEdit;
-            pFieldEdit.Name_2 = "FID";
+            pFieldEdit.Name_2 = ObjectID;
             pFieldEdit.Type_2 = esriFieldType.esriFieldTypeOID;
             pFieldsEdit.AddField(pField);
 
@@ -142,6 +144,20 @@ namespace LoowooTech.Artemisinine.Common
             IFeatureClass featureClass = featureWorkspace.OpenFeatureClass(System.IO.Path.GetFileNameWithoutExtension(HospitalPath));
             return featureClass;
         }
+        private static IFeatureClass GetFeatureClass(IWorkspace workspace, string FeatureClassName)
+        {
+            IFeatureWorkspace featureWorkspace = workspace as IFeatureWorkspace;
+            IFeatureClass featureClass = null;
+            try
+            {
+                 featureClass = featureWorkspace.OpenFeatureClass(FeatureClassName);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("打开要素类：" + FeatureClassName + "失败！错误信息："+ex.Message);
+            }
+            return featureClass;
+        }
         private static IFeature Gain(IFeatureClass featureClass,string Filter)
         {
             IQueryFilter queryFilter = new QueryFilterClass();
@@ -150,16 +166,75 @@ namespace LoowooTech.Artemisinine.Common
             IFeature feature = featureCursor.NextFeature();
             return feature;
         }
-        private static bool Save(IWorkspace workspace, List<Disease> list, DateTime time, IFeatureClass HFeatureClass, int Index)
+        /// <summary>
+        /// 保存疾病数据
+        /// </summary>
+        /// <param name="workspace">保存到的工作空间</param>
+        /// <param name="list">疾病数据</param>
+        /// <param name="time">时间</param>
+        /// <param name="HFeatureClass">医疗机构要素类</param>
+        /// <param name="Index">医疗机构中JGID的Index</param>
+        /// <param name="FeatureClassName">保存的要素类名称</param>
+        /// <param name="ObjectID">键名</param>
+        /// <returns></returns>
+        private static bool Save(IWorkspace workspace, List<Disease> list, DateTime time, IFeatureClass HFeatureClass, int Index,string FeatureClassName,string ObjectID)
         {
-
+            IFeatureClass featureClass = GetFeatureClass(workspace,FeatureClassName);
+            if (featureClass == null)
+            {
+                IFeatureWorkspace featureWorkspace = workspace as IFeatureWorkspace;
+                featureClass = Create(featureWorkspace, FeatureClassName,esriGeometryType.esriGeometryPoint,ObjectID);
+            }
+            int IndexJGID = featureClass.Fields.FindField("JGID");
+            int IndexName = featureClass.Fields.FindField("NAME");
+            int IndexData = featureClass.Fields.FindField("Data");
+            int IndexTime = featureClass.Fields.FindField("Time");
+            try
+            {
+                foreach (var item in list)
+                {
+                    var result = GetPoint(item.JGID, HFeatureClass, Index);
+                    if (result.Geometry != null)
+                    {
+                        var feature = Gain(featureClass, string.Format("JGID='{0}'", item.JGID));
+                        //查找存在的疾病数据 存在更新Data以及时间数据，不存在则添加疾病数据
+                        if (feature != null)
+                        {
+                            feature.set_Value(IndexData, item.Data);
+                            feature.set_Value(IndexTime, item.Time);
+                            feature.Store();
+                        }
+                        else
+                        {
+                            IFeatureBuffer featureBuffer = featureClass.CreateFeatureBuffer();
+                            IFeatureCursor featureCursor = featureClass.Insert(true);
+                            featureBuffer.Shape = result.Geometry;
+                            featureBuffer.set_Value(IndexJGID, item.JGID);
+                            featureBuffer.set_Value(IndexData, item.Data);
+                            featureBuffer.set_Value(IndexName, result.Name);
+                            featureBuffer.set_Value(IndexTime, time);
+                            object featureOID = featureCursor.InsertFeature(featureBuffer);
+                            featureCursor.Flush();
+                            System.Runtime.InteropServices.Marshal.ReleaseComObject(featureCursor);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
             return true;
         }
-
         private static bool SaveInToShapefile(string FilePath,List<Disease> list,DateTime time,IFeatureClass HFeatureClass,int Index)
         {
             IWorkspaceFactory workspaceFactory = new ShapefileWorkspaceFactory();
             IWorkspace workspace = workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(FilePath), 0);
+            return  Save(workspace, list, time, HFeatureClass, Index, System.IO.Path.GetFileNameWithoutExtension(FilePath), "FID");
+
+            #region
+
+            /*
             IFeatureWorkspace featureWorkspace = workspace as IFeatureWorkspace;
             IFeatureClass featureClass=null;
             try
@@ -173,7 +248,7 @@ namespace LoowooTech.Artemisinine.Common
                
             if (featureClass == null)
             {
-                featureClass = Create(featureWorkspace, System.IO.Path.GetFileNameWithoutExtension(FilePath), esriGeometryType.esriGeometryPoint);
+                featureClass = Create(featureWorkspace, System.IO.Path.GetFileNameWithoutExtension(FilePath), esriGeometryType.esriGeometryPoint,"FID");
             }
             int IndexJGID = featureClass.Fields.FindField("JGID");
             int IndexName = featureClass.Fields.FindField("NAME");
@@ -224,6 +299,13 @@ namespace LoowooTech.Artemisinine.Common
             //workspaceEdit.StopEditing(true);
 
             return true;
+            */
+            #endregion
+        }
+
+        private static bool SaveInToSDE(IWorkspace workspace, List<Disease> list, DateTime Time, IFeatureClass HFeatureClass, int Index,string FeatureClassName)
+        {
+            return Save(workspace, list, Time, HFeatureClass, Index, FeatureClassName, "OBJECTID");
         }
         public static void CreateShapeFile(Dictionary<DateTime, List<Disease>> Dict)
         {
@@ -244,9 +326,6 @@ namespace LoowooTech.Artemisinine.Common
                 }
             }
         }
-
-
-
         private static IWorkspace arcSDEWorkspaceOpen(string server, string instance, string user, string password, string database, string version)
         {
             IPropertySet pPropertySet = new PropertySetClass();
@@ -273,7 +352,7 @@ namespace LoowooTech.Artemisinine.Common
         {
             return arcSDEWorkspaceOpen(Server, Instance, User, Password, Database, Version);
         }
-        public static void Operate(Dictionary<DateTime, List<Disease>> Dict)
+        public static void Operate(Dictionary<DateTime, List<Disease>> Dict,string Thing)
         {
             IWorkspace workspace = OpenSde();
             if (workspace == null)
@@ -284,6 +363,25 @@ namespace LoowooTech.Artemisinine.Common
             else
             {
                 Console.WriteLine("成功连接SDE");
+            }
+            IFeatureClass HFeatureClass = GetFeatureClass(workspace, HospitalName);
+            if (HFeatureClass == null)
+            {
+                Console.WriteLine("未找到医疗机构坐标数据,即将退出程序..............");
+                return;
+            }
+            int Index=HFeatureClass.Fields.FindField("JGID");
+            foreach (var key in Dict.Keys)
+            {
+                var featureClassName=string.Format("{0}{1}{2}{3}","Sickness", key.Year, key.Month, key.Day);
+                if (SaveInToSDE(workspace, Dict[key], key, HFeatureClass, Index, featureClassName))
+                {
+                    Console.WriteLine("成功生成要素类：" + featureClassName);
+                }
+                else
+                {
+                    Console.WriteLine("生成要素类：" + featureClassName + "时，发生错误");
+                }
             }
             
         }
