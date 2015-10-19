@@ -24,6 +24,7 @@ namespace LoowooTech.Artemisinine.Common
         private static string Database { get; set; }
         private static string Version { get; set; }
         private static string Folder { get; set; }
+        private static IWorkspace SDEWorkspace { get; set; }
         static GISManager()
         {
             HospitalPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, System.Configuration.ConfigurationManager.AppSettings["HOSPITAL"]);
@@ -37,6 +38,7 @@ namespace LoowooTech.Artemisinine.Common
             Password = System.Configuration.ConfigurationManager.AppSettings["PASSWORD"];
             Database = System.Configuration.ConfigurationManager.AppSettings["DATABASE"];
             Version = System.Configuration.ConfigurationManager.AppSettings["VERSION"];
+            SDEWorkspace = OpenSde();
         }
 
         private static List<NField> GetInitFields()
@@ -385,5 +387,33 @@ namespace LoowooTech.Artemisinine.Common
             }
             
         }
+
+        /// <summary>
+        /// 获取工作空间中所有的要素类
+        /// </summary>
+        /// <param name="workspace"></param>
+        /// <returns></returns>
+        private static List<string> GetFeatureClassNames(IWorkspace workspace)
+        {
+            var list = new List<string>();
+            IFeatureWorkspace featureWorkspace = workspace as IFeatureWorkspace;
+
+            return list;
+        } 
+
+        public static List<DiseaseBase> GetValues(string JGID)
+        {
+            var list = new List<DiseaseBase>();
+            if (SDEWorkspace != null)
+            {
+
+            }
+            else
+            {
+                Console.WriteLine("SDE 未连接，无法进行查询.....");
+            }
+            return list;
+        }
+        
     }
 }

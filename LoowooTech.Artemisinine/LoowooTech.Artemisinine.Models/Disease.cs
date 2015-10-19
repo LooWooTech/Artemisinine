@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,5 +12,10 @@ namespace LoowooTech.Artemisinine.Models
         public double Data { get; set; }
         public DateTime Time { get; set; }
         public string Thing { get; set; }
+    }
+    public class DiseaseBase
+    {
+        public double Data { get; set; }
+        public DateTime Time { get; set; }
     }
 }

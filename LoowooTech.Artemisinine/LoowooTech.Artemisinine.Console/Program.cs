@@ -29,7 +29,7 @@ namespace LoowooTech.Artemisinine.Console
                 System.Console.WriteLine("开始保存到SDE中");
                 GISManager.Operate(values,uploadfile.Thing);
                 System.Console.WriteLine("开始Shapefile文件！");
-                //GISManager.CreateShapeFile(values);
+                GISManager.CreateShapeFile(values);
             }
 
             System.Console.ReadLine();
