@@ -8,6 +8,8 @@ namespace LoowooTech.Artemisinine.Models
 {
     public enum MapType
     {
+        [Description("医疗点")]
+        Place,
         [Description("疾病情况")]
         Situation,
         [Description("热度图")]
