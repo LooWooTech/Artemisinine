@@ -4,6 +4,7 @@
     ViewBag.Title = "动态图层";
     Layout = "~/Views/Map/_Layout.cshtml";
     List<int> Years = ViewBag.List;
+    
 }
 <style>
     html,body,#map{
@@ -48,51 +49,6 @@
     }
 </style>
 <script src="~/Scripts/Dynamic.js"></script>
-<script>
-    $(function () {
-        $("#Year").click(function () {
-            var value = $(this).val();
-            var xmlhttp;
-            var node;
-            var txt;
-            if (window.XMLHttpRequest) {
-                xmlhttp = new XMLHttpRequest();
-            } else {
-                xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-            }
-
-            xmlhttp.onreadystatechange = function () {
-                if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-                    $("#Month").empty().append(xmlhttp.responseText);
-                }
-            }
-            xmlhttp.open("GET", "/Map/GetMonths?Year=" + value, true);
-            xmlhttp.send();
-        });
-
-        $("#Month").click(function () {
-            var month = $(this).val();
-            var year = $("#Year").val();
-            var xmlhttp;
-            var node;
-            var txt;
-            if (window.XMLHttpRequest) {
-                xmlhttp = new XMLHttpRequest();
-            } else {
-                xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-            }
-
-            xmlhttp.onreadystatechange = function () {
-                if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-                    $("#Day").empty().append(xmlhttp.responseText);
-                }
-            }
-
-            xmlhttp.open("GET", "/Map/GetDays?Year=" + year + "&&Month=" + month, true);
-            xmlhttp.send();
-        })
-    })
-</script>
 
 <div id="Search"></div>
 <div class="row">
@@ -113,33 +69,6 @@
                 <div class="collapse navbar-collapse" id="navbar-menu">
                     <form class="navbar-form navbar-left" role="dialog">
                         <div class="form-group">
-                            <div class="input-group">
-                                <select class="form-control" id="Year">
-                                    @foreach (var item in Years)
-                                    {
-                                        <option value="@(item)">@(item)</option>
-                                    }
-                                </select>
-                                <span class="input-group-addon">年</span>
-                            </div> 
-                        </div>
-                        <div class="form-group">
-                            <div class="input-group">
-                                <select class="form-control" id="Month">
-
-                                </select>
-                                <span class="input-group-addon">月</span>
-                            </div>  
-                        </div>
-                        <div class="form-group">
-                            <div class="input-group">
-                                <select class="form-control" id="Day">
-
-                                </select>
-                                <span class="input-group-addon">日</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
                             <label for="" class="control-label">图层：</label>
                             <select class="form-control" id="MapType">
                                 @foreach (MapType maptype in Enum.GetValues(typeof(MapType)))
@@ -148,9 +77,6 @@
                                 }
                             </select>
                         </div>
-
-                        <button type="button" id="Play">播放</button>
-                        <button type="button" id="Stop">暂停</button>
                     </form>
                 </div>
             </div>
@@ -161,6 +87,7 @@
     <div id="HomeButton"></div>
     <div id="bottomPanel">
         <div id="timeInfo">
+            <div>当前日期为：<span id="modern"></span></div>
             <div id="timeSliderDiv"></div>
         </div>
     </div>

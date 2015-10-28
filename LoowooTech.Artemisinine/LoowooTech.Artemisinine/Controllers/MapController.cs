@@ -19,6 +19,7 @@ namespace LoowooTech.Artemisinine.Controllers
         public ActionResult Dynamic()
         {
             ViewBag.List = MapInfoManager.GetYears();
+            ViewBag.Indexs = MapInfoManager.GetIndexs();
             return View();
         }
 

@@ -24,39 +24,6 @@ namespace LoowooTech.Artemisinine.Common
         }
 
 
-        public static Dictionary<string, List<TimeRecord>> Get()
-        {
-            var dict = new Dictionary<string, List<TimeRecord>>();
-            var nodes = ConfigXml.SelectNodes("/Maps/Map");
-            if (nodes != null)
-            {
-                for (var i = 0; i < nodes.Count; i++)
-                {
-                    var name = nodes[i].Attributes["Name"].Value.ToString();
-                    var lnodes = ConfigXml.SelectNodes("/Maps/Map[@Name='" + name + "']/Layer");
-                    var list = new List<TimeRecord>();
-                    if (lnodes != null)
-                    {
-                        for (var j = 0; j < lnodes.Count; j++)
-                        {
-                            list.Add(new TimeRecord()
-                            {
-                                Year = int.Parse(lnodes[j].Attributes["Year"].Value.ToString()),
-                                Month = int.Parse(lnodes[j].Attributes["Month"].Value.ToString()),
-                                Day = int.Parse(lnodes[j].Attributes["Day"].Value.ToString()),
-                                Index = int.Parse(lnodes[j].Attributes["value"].Value.ToString())
-                            });
-                        }
-                    }
-                    if (!dict.ContainsKey(name))
-                    {
-                        dict.Add(name, list);
-                    }
-                }
-            }
-            return dict;
-        }
-
         /// <summary>
         /// 获取疾病数据所有年
         /// </summary>
@@ -118,35 +85,22 @@ namespace LoowooTech.Artemisinine.Common
             dict = dict.OrderBy(e => e.Key).ToDictionary(e=>e.Key,e=>e.Value);
             return dict;
         }
-        
-
-        public static Dictionary<string,int> GetDays(int Year)
+        public static List<int> GetIndexs()
         {
-            var dict = new Dictionary<string, int>();
-            var nodes = ConfigXml.SelectNodes("/Maps/Map/Layer[@Year='" + Year + "']");
+            var list = new List<int>();
+            var nodes = ConfigXml.SelectNodes("/Maps/Map/Layer");
             if (nodes != null)
             {
-                List<TimeRecord> list = new List<TimeRecord>();
                 for (var i = 0; i < nodes.Count; i++)
                 {
-                    list.Add(new TimeRecord()
+                    var index = int.Parse(nodes[i].Attributes["value"].Value.ToString());
+                    if (!list.Contains(index))
                     {
-                        Month = int.Parse(nodes[i].Attributes["Month"].Value.ToString()),
-                        Day = int.Parse(nodes[i].Attributes["Day"].Value.ToString()),
-                        Index = int.Parse(nodes[i].Attributes["value"].Value.ToString())
-                    });
-                }
-                list = list.OrderBy(e => e.Month).ToList();
-                foreach (var item in list)
-                {
-                    var date = string.Format("{0}月{1}日", item.Month, item.Day);
-                    if (!dict.ContainsKey(date))
-                    {
-                        dict.Add(date, item.Index);
+                        list.Add(index);
                     }
                 }
             }
-            return dict;
+            return list;
         }
 
         public static string HtmlResult(List<int> List)
