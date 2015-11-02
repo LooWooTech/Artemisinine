@@ -32,7 +32,15 @@ namespace LoowooTech.Artemisinine.Common
             Folder = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data");
             SicknessName = System.Configuration.ConfigurationManager.AppSettings["NAME"];
             configXml = new XmlDocument();
-            configXml.Load(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, System.Configuration.ConfigurationManager.AppSettings["FIELDS"]));
+            try
+            {
+                configXml.Load(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, System.Configuration.ConfigurationManager.AppSettings["FIELDS"]));
+            }
+            catch
+            {
+
+            }
+                  
             HospitalName = System.Configuration.ConfigurationManager.AppSettings["HNAME"];
             Server = System.Configuration.ConfigurationManager.AppSettings["SERVER"];
             Instance = System.Configuration.ConfigurationManager.AppSettings["INSTANCE"];
@@ -442,10 +450,11 @@ namespace LoowooTech.Artemisinine.Common
             IDatasetName datasetName = enumDatasetName.Next();
             while (datasetName != null)
             {
-                if (datasetName.Type == esriDatasetType.esriDTFeatureDataset)
+                if (datasetName.Type == esriDatasetType.esriDTFeatureClass)
                 {
                     list.Add(datasetName.Name);
                 }
+                datasetName = enumDatasetName.Next();
             }
             return list;
         }

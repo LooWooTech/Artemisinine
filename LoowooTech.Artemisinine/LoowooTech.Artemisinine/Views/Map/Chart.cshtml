@@ -1,0 +1,26 @@
+﻿@{
+    Layout = null;
+    string JGID=ViewBag.JGID;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Chart</title>
+    <script src="~/Scripts/Chart.js"></script>
+    <script type="text/javascript">
+        @{
+            Html.RenderAction("JavaScriptContext", new { JGID = JGID });
+        }
+    </script>
+</head>
+<body>
+    <div style="width:100%;">
+        <div>
+            <canvas id="canvas" height="428" width="571" style="width:571px;height:428px;"></canvas>
+        </div>
+    </div>
+</body>
+</html>

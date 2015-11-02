@@ -125,5 +125,19 @@ namespace LoowooTech.Artemisinine.Common
             }
             return valDict;
         }
+
+        public static string ToTableHtml(this List<DiseaseBase> list)
+        {
+            string str = string.Empty;
+            int Index = 1;
+            str += "<table class='table'><tr><th>序号</th><th>时间</th><th>疾病数</th></tr>";
+            foreach (var item in list)
+            {
+                str += "<tr><td>" + (Index++) + "</td><td>" + item.Time.ToString() + "</td><td>" + Math.Round(item.Data, 2) + "</td></tr>";
+
+            }
+            str += "</table>";
+            return str;
+        }
     }
 }

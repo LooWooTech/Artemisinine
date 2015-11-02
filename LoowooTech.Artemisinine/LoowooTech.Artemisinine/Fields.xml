@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Fields>
+  <Field Name="JGID" Type="String"></Field>
+  <Field Name="NAME" Type="String"></Field>
+  <Field Name="Data" Type="Double"></Field>
+  <Field Name="Time" Type="Date"></Field>
+</Fields>

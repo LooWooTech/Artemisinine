@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ChartMode.cs" />
     <Compile Include="Disease.cs" />
     <Compile Include="FileFilter.cs" />
     <Compile Include="MapType.cs" />

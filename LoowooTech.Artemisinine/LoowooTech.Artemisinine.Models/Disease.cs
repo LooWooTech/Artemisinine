@@ -15,7 +15,15 @@ namespace LoowooTech.Artemisinine.Models
     }
     public class DiseaseBase
     {
+        /// <summary>
+        /// 疾病数据
+        /// </summary>
         public double Data { get; set; }
+        /// <summary>
+        /// 时间
+        /// </summary>
         public DateTime Time { get; set; }
+
+       
     }
 }

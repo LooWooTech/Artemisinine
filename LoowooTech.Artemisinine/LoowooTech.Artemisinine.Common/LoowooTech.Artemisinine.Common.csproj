@@ -84,6 +84,7 @@
   <ItemGroup>
     <Compile Include="AuthenticateModule.cs" />
     <Compile Include="AuthUtility.cs" />
+    <Compile Include="ChartHelper.cs" />
     <Compile Include="EncryptExtensions.cs" />
     <Compile Include="EnumExtensions.cs" />
     <Compile Include="ExcelHelper.cs" />
