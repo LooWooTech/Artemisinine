@@ -45,7 +45,7 @@ var visible = [];
 var line;//当前一个图层序号
 var current;//即将切换到的图层序号
 require([
-       "esri/map", "esri/layers/ArcGISDynamicMapServiceLayer", "esri/layers/ImageParameters",
+       "esri/map", "esri/layers/ArcGISDynamicMapServiceLayer", "esri/layers/ImageParameters","esri/layers/RasterLayer",
        "esri/layers/ArcGISTiledMapServiceLayer","esri/renderers/HeatmapRenderer",
        "esri/dijit/TimeSlider","esri/TimeExtent","dojo/_base/array","dojo/dom","dojo/_base/connect",
        "esri/layers/FeatureLayer", "esri/InfoTemplate", "esri/dijit/Search",
@@ -54,7 +54,7 @@ require([
        "esri/tasks/RelationshipQuery",
        "dojo/domReady!"
 ], function (
-       Map, ArcGISDynamicMapServiceLayer, ImageParameters,
+       Map, ArcGISDynamicMapServiceLayer, ImageParameters,RasterLayer,
        Tiled,HeatmapRenderer,
        TimeSlider,TimeExtent,arrayUtils,dom,connect,
        FeatureLayer, InfoTemplate, Search,
@@ -363,20 +363,23 @@ require([
         }
     }
 
-   
+    function GetLayerUrl(MapService) {
+        return "http://" + host + "/arcgis/rest/services/"+MapService+"/MapServer/";
+    }
     //基础链接
-    var featureLayerUrl = "http://"+host+"/arcgis/rest/services/Data/MapServer/";
+   // var featureLayerUrl = 
 
     function AddAllFeatureLayers() {
         for (var i = 0; i < data.length; i++) {
-            layers[i] = new FeatureLayer(featureLayerUrl + data[i].id, {
+            console.log(GetLayerUrl("data") + data[i].id);
+            layers[i] = new FeatureLayer(GetLayerUrl("data") + data[i].id, {
                 mode: FeatureLayer.MODE_ONDEMAND,
                 opacity: 0,
                 visible: false,
                 outFields: ["*"],
                 infoTemplate: new InfoTemplate("疾病数据", "医疗机构：${JGID}<br/>名称：${NAME}<br/>疾病数据：${Data}<br/>时间：${Time}")
             });
-            heatlayers[i] = new FeatureLayer(featureLayerUrl + data[i].id, {
+            heatlayers[i] = new FeatureLayer(GetLayerUrl("data") + data[i].id, {
                 mode: FeatureLayer.MODE_SNAPSHOT,
                 opacity: 0,
                 visible: false,
@@ -391,20 +394,26 @@ require([
         map.addLayers(heatlayers);
     }
 
-    function AddDynamicLayer() {
-        console.log("开始加载动态图层");
+    function AddFBLayers() {
         for (var i = 0; i < data.length; i++) {
-            FBLayers[i] = new ArcGISDynamicMapServiceLayer("http://10.22.102.18:6080/arcgis/rest/services/FBT/MapServer");
-            FBLayers.setVisibleLayers([data[i].FBT]);
-            console.log(i);
+            FBLayers[i] = new FeatureLayer(GetLayerUrl("FBT")+data[i].FBT, {
+                mode: FeatureLayer.MODE_SNAPSHOT,
+                opacity: 0,
+                visible: false,
+
+            })
         }
-        console.log("加载动态图层结束");
     }
 
     //加载所有的疾病数据图层
     map.on("load", function () {
         AddAllFeatureLayers();
-        AddDynamicLayer();
+        console.log("0000");
+        console.log(GetLayerUrl("FBT2") + "1");
+        map.addLayer(new FeatureLayer("http://10.22.102.18:6080/arcgis/rest/services/FBT2/MapServer/1", {
+            mode: FeatureLayer.MODE_SNAPSHOT
+        }));
+        //AddDynamicLayer();
     })
     
 
