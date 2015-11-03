@@ -40,10 +40,10 @@ namespace LoowooTech.Artemisinine.Controllers
 
         public ActionResult Query(string JGID)
         {
-            ESRI.ArcGIS.RuntimeManager.Bind(ESRI.ArcGIS.ProductCode.EngineOrDesktop);
-            LicenseManager.StartUp();
+            //ESRI.ArcGIS.RuntimeManager.Bind(ESRI.ArcGIS.ProductCode.EngineOrDesktop);
+           
             var list = GISManager.GetValues(JGID);
-            LicenseManager.ShutDown();
+            
             ViewBag.List = list;
             return View();
         }
@@ -55,19 +55,24 @@ namespace LoowooTech.Artemisinine.Controllers
         }
         public string JavaScriptContext(string JGID)
         {
-            ESRI.ArcGIS.RuntimeManager.Bind(ESRI.ArcGIS.ProductCode.EngineOrDesktop);
-            LicenseManager.StartUp();
             var list = GISManager.GetValues(JGID);
-            LicenseManager.ShutDown();
             return ChartHelper.GetJavaScriptContext(list, Server.MapPath("~/Maps/Chart.js"));
+        }
+
+        public ActionResult Trend()
+        {
+            ViewBag.List = GISManager.GetXZC();
+            return View();
+        }
+
+        public string JavaScriptTrend(string XZQDM, string DiseaseName)
+        {
+            return "";
         }
 
         public ActionResult GetValues(string JGID)
         {
-            ESRI.ArcGIS.RuntimeManager.Bind(ESRI.ArcGIS.ProductCode.EngineOrDesktop);
-            LicenseManager.StartUp();
             var list = GISManager.GetValues(JGID);
-            LicenseManager.ShutDown();
             return Content(list.ToTableHtml());  
         }
 

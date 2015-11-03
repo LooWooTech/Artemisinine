@@ -16,5 +16,13 @@ namespace LoowooTech.Artemisinine.Models
     {
         public IGeometry Geometry { get; set; }
         public string Name { get; set; }
+        public string ZZJGDM { get; set; }
+        public string XZDM { get; set; }
+    }
+    
+    public class District
+    {
+        public string Name { get; set; }
+        public string Code { get; set; }
     }
 }

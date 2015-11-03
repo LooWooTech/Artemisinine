@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="~/Content/main.min.css" />
     <script src="~/Scripts/jquery-2.1.4.min.js"></script>
     <script src="~/Scripts/bootstrap.min.js"></script>
+    <script src="~/Scripts/Chart.js"></script>
     <link rel="stylesheet" type="text/css" href="http://10.22.102.18/arcgis_js_api/library/3.14/3.14/dijit/themes/tundra/tundra.css" />
     <link rel="stylesheet" type="text/css" href="http://10.22.102.18/arcgis_js_api/library/3.14/3.14/esri/css/esri.css" />
     <link rel="stylesheet" type="text/css" href="http://10.22.102.18/arcgis_js_api/library/3.14/3.14/dijit/themes/claro/claro.css" />
@@ -25,5 +26,10 @@
 </head>
 <body>
     @RenderBody()
+    <div style="width:100%">
+        <div>
+            <canvas id="canvas" height="428" width="571" style="width:571px;height:428px;"></canvas>
+        </div>
+    </div>
 </body>
 </html>

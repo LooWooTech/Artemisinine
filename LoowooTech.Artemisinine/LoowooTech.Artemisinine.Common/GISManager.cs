@@ -25,7 +25,11 @@ namespace LoowooTech.Artemisinine.Common
         private static string Version { get; set; }
         private static string Folder { get; set; }
         private static string SicknessName { get; set; }
+        private static string CityName { get; set; }
+        private static string CountyName { get; set; }
         private static IWorkspace SDEWorkspace { get; set; }
+        private static Dictionary<string, List<District>> XZCDict { get; set; }
+        private static List<District> XZQList { get; set; }
         static GISManager()
         {
             HospitalPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, System.Configuration.ConfigurationManager.AppSettings["HOSPITAL"]);
@@ -48,8 +52,97 @@ namespace LoowooTech.Artemisinine.Common
             Password = System.Configuration.ConfigurationManager.AppSettings["PASSWORD"];
             Database = System.Configuration.ConfigurationManager.AppSettings["DATABASE"];
             Version = System.Configuration.ConfigurationManager.AppSettings["VERSION"];
+            CountyName = System.Configuration.ConfigurationManager.AppSettings["CNAME"];
+            CityName = System.Configuration.ConfigurationManager.AppSettings["QNAME"];
             SDEWorkspace = OpenSde();
         }
+
+        private static void InitSDE()
+        {
+            if (SDEWorkspace == null)
+            {
+                System.Console.WriteLine(string.Format("{0}:初始化SDE失败，SDEWorkspace为NULL", DateTime.Now));
+                return;
+            }
+            if (XZCDict == null)
+            {
+                XZCDict = new Dictionary<string, List<District>>();
+            }
+            if (XZQList == null)
+            {
+                XZQList = new List<District>();
+            }
+            
+            var CFeatureClass = GetFeatureClass(SDEWorkspace, CountyName);
+            var QFeatureClass = GetFeatureClass(SDEWorkspace, CityName);
+            if (CFeatureClass == null || QFeatureClass == null)
+            {
+                Console.WriteLine(string.Format("{0}:打开行政区要素类或者行政村要素类失败为NUll，初始化失败", DateTime.Now));
+                return;
+            }
+            int IndexQName = QFeatureClass.Fields.FindField("NAME");
+            int IndexQDM = QFeatureClass.Fields.FindField("CNTY_CODE");
+
+            int IndexCName = CFeatureClass.Fields.FindField("NAME");
+            int IndexCDM = CFeatureClass.Fields.FindField("CNTY_CODE");
+            #region 读取行政村数据
+            IFeatureCursor featureCursor = CFeatureClass.Search(null,true);
+            IFeature feature = featureCursor.NextFeature();
+            while (feature != null)
+            {
+                var code = feature.get_Value(IndexCDM).ToString();
+                if (!string.IsNullOrEmpty(code))
+                {
+                    var key = code.Substring(0, 4);
+                    if (!string.IsNullOrEmpty(key))
+                    {
+                        if (XZCDict.ContainsKey(key))
+                        {
+                            XZCDict[key].Add(new District()
+                            {
+                                Name = feature.get_Value(IndexCName).ToString(),
+                                Code = code
+                            });
+                        }
+                        else
+                        {
+                            XZCDict.Add(key, new List<District>(){new District(){
+                                Name = feature.get_Value(IndexCName).ToString(),
+                                Code = code
+                             }});
+                        }
+                    }
+                }
+                
+                feature = featureCursor.NextFeature();
+            }
+
+            #endregion
+
+            #region 读取行政区数据
+            featureCursor = QFeatureClass.Search(null, true);
+            feature = featureCursor.NextFeature();
+            while (feature != null)
+            {
+                var code = feature.get_Value(IndexQDM).ToString();
+                if (!string.IsNullOrEmpty(code))
+                {
+                    XZQList.Add(new District()
+                    {
+                        Name = feature.get_Value(IndexQName).ToString(),
+                        Code = code
+                    });
+                }
+                feature = featureCursor.NextFeature();
+            }
+
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(featureCursor);
+            #endregion
+
+
+
+        }
+        
         private static List<NField> GetInitFields()
         {
             if (configXml == null)
@@ -127,7 +220,7 @@ namespace LoowooTech.Artemisinine.Common
             IFeatureClass featureClass = featureWorkspace.CreateFeatureClass(Name, pFields, objectClassDescription.InstanceCLSID, objectClassDescription.ClassExtensionCLSID, esriFeatureType.esriFTSimple, "shape", "");
             return featureClass;
         }
-        private static SField GetPoint(string JGID, IFeatureClass FeatureClas, int Index)
+        private static SField GetPoint(string JGID, IFeatureClass FeatureClas, int Index,int IndexGDM,int IndexDM)
         {
             IQueryFilter queryFilter = new QueryFilterClass();
             queryFilter.WhereClause = "JGID='" + JGID + "'";
@@ -138,7 +231,9 @@ namespace LoowooTech.Artemisinine.Common
                 return new SField()
                 {
                     Geometry = feature.Shape,
-                    Name = feature.get_Value(Index).ToString()
+                    Name = feature.get_Value(Index).ToString(),
+                    ZZJGDM=feature.get_Value(IndexGDM).ToString(),
+                    XZDM=feature.get_Value(IndexDM).ToString()
                 };
             }
             Console.WriteLine("未找到医疗机构ID为" + JGID + "的坐标信息");
@@ -201,7 +296,7 @@ namespace LoowooTech.Artemisinine.Common
         /// <param name="FeatureClassName">保存的要素类名称</param>
         /// <param name="ObjectID">键名</param>
         /// <returns></returns>
-        private static bool Save(IWorkspace workspace, List<Disease> list, DateTime time, IFeatureClass HFeatureClass, int Index,string FeatureClassName,string ObjectID)
+        private static bool Save(IWorkspace workspace, List<Disease> list, DateTime time, IFeatureClass HFeatureClass, int Index,int IndexGDM,int IndexDM,string FeatureClassName,string ObjectID)
         {
             IFeatureClass featureClass = GetFeatureClass(workspace,FeatureClassName);
             if (featureClass == null)
@@ -213,11 +308,18 @@ namespace LoowooTech.Artemisinine.Common
             int IndexName = featureClass.Fields.FindField("NAME");
             int IndexData = featureClass.Fields.FindField("Data");
             int IndexTime = featureClass.Fields.FindField("Time");
+            int IndexZZJGDM = featureClass.Fields.FindField("ZZJGDM");
+            int IndexXZDM = featureClass.Fields.FindField("XZDM");
+            int IndexXZC = featureClass.Fields.FindField("XZC");
+            int IndexXZCDM = featureClass.Fields.FindField("XZCDM");
+            int IndexXZQ = featureClass.Fields.FindField("XZQ");
+            int IndexXZQDM = featureClass.Fields.FindField("XZQDM");
+            District entry=null;
             try
             {
                 foreach (var item in list)
                 {
-                    var result = GetPoint(item.JGID, HFeatureClass, Index);
+                    var result = GetPoint(item.JGID, HFeatureClass, Index,IndexGDM,IndexDM);
                     if (result.Geometry != null)
                     {
                         var feature = Gain(featureClass, string.Format("JGID='{0}'", item.JGID));
@@ -237,6 +339,22 @@ namespace LoowooTech.Artemisinine.Common
                             featureBuffer.set_Value(IndexJGID, item.JGID);
                             featureBuffer.set_Value(IndexData, item.Data);
                             featureBuffer.set_Value(IndexName, result.Name);
+                            featureBuffer.set_Value(IndexZZJGDM, result.ZZJGDM);
+                            featureBuffer.set_Value(IndexXZDM, result.XZDM);
+                            var xkey=result.XZDM.Substring(0,4);
+                            if (XZCDict.ContainsKey(xkey))
+                            {
+                                var ykey=result.XZDM.Substring(0,6).ToUpper();
+                                entry = XZCDict[xkey].FirstOrDefault(e => e.Code == ykey);
+                                featureBuffer.set_Value(IndexXZC, entry.Name);
+                                featureBuffer.set_Value(IndexXZCDM, entry.Code);
+                            }
+                            entry = Search(result.XZDM.Substring(0, 2));
+                            if (entry != null)
+                            {
+                                featureBuffer.set_Value(IndexXZQ, entry.Name);
+                                featureBuffer.set_Value(IndexXZQDM, entry.Code);
+                            }
                             featureBuffer.set_Value(IndexTime, time);
                             object featureOID = featureCursor.InsertFeature(featureBuffer);
                             featureCursor.Flush();
@@ -251,11 +369,23 @@ namespace LoowooTech.Artemisinine.Common
             }
             return true;
         }
-        private static bool SaveInToShapefile(string FilePath,List<Disease> list,DateTime time,IFeatureClass HFeatureClass,int Index)
+
+        private static District Search(string Code)
+        {
+            foreach (var item in XZQList)
+            {
+                if (item.Code.Substring(0,2)==Code)
+                {
+                    return item;
+                }
+            }
+            return null;
+        }
+        private static bool SaveInToShapefile(string FilePath,List<Disease> list,DateTime time,IFeatureClass HFeatureClass,int Index,int IndexGDM,int IndexDM)
         {
             IWorkspaceFactory workspaceFactory = new ShapefileWorkspaceFactory();
             IWorkspace workspace = workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(FilePath), 0);
-            return  Save(workspace, list, time, HFeatureClass, Index, System.IO.Path.GetFileNameWithoutExtension(FilePath), "FID");
+            return  Save(workspace, list, time, HFeatureClass, Index,IndexGDM,IndexDM, System.IO.Path.GetFileNameWithoutExtension(FilePath), "FID");
 
             #region
 
@@ -327,9 +457,9 @@ namespace LoowooTech.Artemisinine.Common
             */
             #endregion
         }
-        private static bool SaveInToSDE(IWorkspace workspace, List<Disease> list, DateTime Time, IFeatureClass HFeatureClass, int Index,string FeatureClassName)
+        private static bool SaveInToSDE(IWorkspace workspace, List<Disease> list, DateTime Time, IFeatureClass HFeatureClass, int Index,int IndexGDM,int IndexDM,string FeatureClassName)
         {
-            return Save(workspace, list, Time, HFeatureClass, Index, FeatureClassName, "OBJECTID");
+            return Save(workspace, list, Time, HFeatureClass, Index,IndexGDM,IndexDM, FeatureClassName, "OBJECTID");
         }
         public static void CreateShapeFile(Dictionary<DateTime, List<Disease>> Dict)
         {
@@ -341,10 +471,12 @@ namespace LoowooTech.Artemisinine.Common
             var HospitalFeatureClass = OpenShapeFileFeatureClass();
             Console.WriteLine("成功获取医疗机构数据！");
             var index = HospitalFeatureClass.Fields.FindField("NAME");
+            var IndexGDM = HospitalFeatureClass.Fields.FindField("ZZJGDM");
+            var IndexDM = HospitalFeatureClass.Fields.FindField("XZDM");
             foreach (var key in Dict.Keys)
             {
                 var filePath = System.IO.Path.Combine(Folder, string.Format("{0}{1}{2}", key.Year, key.Month, key.Day));
-                if (SaveInToShapefile(filePath, Dict[key], key, HospitalFeatureClass, index))
+                if (SaveInToShapefile(filePath, Dict[key], key, HospitalFeatureClass, index,IndexGDM,IndexDM))
                 {
                     Console.WriteLine("成功生成文件" + filePath);
                 }
@@ -394,11 +526,14 @@ namespace LoowooTech.Artemisinine.Common
                 Console.WriteLine("未找到医疗机构坐标数据,即将退出程序..............");
                 return;
             }
+            InitSDE();
             int Index=HFeatureClass.Fields.FindField("NAME");
+            int IndexGDM = HFeatureClass.Fields.FindField("ZZJGDM");
+            int IndexDM = HFeatureClass.Fields.FindField("XZDM");
             foreach (var key in Dict.Keys)
             {
-                var featureClassName=string.Format("{0}{1}{2}{3}",SicknessName, key.Year.ToString("0000"), key.Month.ToString("00"), key.Day.ToString("00"));
-                if (SaveInToSDE(workspace, Dict[key], key, HFeatureClass, Index, featureClassName))
+                var featureClassName=string.Format("{0}{1}{2}{3}",Thing+SicknessName, key.Year.ToString("0000"), key.Month.ToString("00"), key.Day.ToString("00"));
+                if (SaveInToSDE(workspace, Dict[key], key, HFeatureClass, Index,IndexGDM,IndexDM, featureClassName))
                 {
                     Console.WriteLine("成功生成要素类：" + featureClassName);
                 }
@@ -430,10 +565,12 @@ namespace LoowooTech.Artemisinine.Common
                 return;
             }
             int Index = HFeatureClass.Fields.FindField("NAME");
+            int IndexGDM = HFeatureClass.Fields.FindField("ZZJGDM");
+            int IndexDM = HFeatureClass.Fields.FindField("XZDM");
             string FeatureClassName = string.Format("{0}Sum", SicknessName);
             foreach (var key in Dict.Keys)
             {
-                SaveInToSDE(workspace, Dict[key], key, HFeatureClass, Index, FeatureClassName);
+                SaveInToSDE(workspace, Dict[key], key, HFeatureClass, Index,IndexGDM,IndexDM, FeatureClassName);
             }
         }
         /// <summary>
@@ -494,6 +631,36 @@ namespace LoowooTech.Artemisinine.Common
             {
                 Console.WriteLine("SDE 未连接，无法进行查询.....");
             }
+            return list;
+        }
+        public static List<string> GetXZC()
+        {
+            if (SDEWorkspace != null)
+            {
+                var CFeatureClass = GetFeatureClass(SDEWorkspace, CountyName);
+                var Index = CFeatureClass.Fields.FindField("NAME");
+                return GetList(CFeatureClass, Index);
+            }
+            return null;
+        }
+
+        public static List<string> GetList(IFeatureClass featureClass,int Index,string Filter=null)
+        {
+            var list = new List<string>();
+            IQueryFilter queryFilter = new QueryFilterClass();
+            queryFilter.WhereClause = Filter;
+            IFeatureCursor featureCursor = featureClass.Search(queryFilter, true);
+            IFeature feature = featureCursor.NextFeature();
+            while (feature != null)
+            {
+                var value = feature.get_Value(Index).ToString();
+                if (!string.IsNullOrEmpty(value))
+                {
+                    list.Add(value);
+                }
+                feature = featureCursor.NextFeature();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(featureCursor);
             return list;
         }
         

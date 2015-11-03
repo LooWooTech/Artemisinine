@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LoowooTech.Artemisinine.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -16,12 +17,15 @@ namespace LoowooTech.Artemisinine
     {
         protected void Application_Start()
         {
+            ESRI.ArcGIS.RuntimeManager.Bind(ESRI.ArcGIS.ProductCode.EngineOrDesktop);
+            LicenseManager.StartUp();
             AreaRegistration.RegisterAllAreas();
 
             WebApiConfig.Register(GlobalConfiguration.Configuration);
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+            LicenseManager.ShutDown();
         }
     }
 }

@@ -39,7 +39,7 @@ var dates = new Array();
 var indexs = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 27, 28, 29, 30, 31, 32, 33, 34, 35];
 var layers = new Array();//每个时间段的疾病数据图层
 var heatlayers = new Array();//每个时间段的热度图图层
-var FBLayers = new Array();
+var FBLayers = new Array();//每个时间段的发病图图层
 var layer;
 var visible = [];
 var line;//当前一个图层序号
@@ -51,7 +51,7 @@ require([
        "esri/layers/FeatureLayer", "esri/InfoTemplate", "esri/dijit/Search",
        "esri/renderers/ClassBreaksRenderer", "esri/Color", "esri/renderers/BlendRenderer", "esri/renderers/SimpleRenderer", "esri/symbols/SimpleFillSymbol", "esri/symbols/SimpleLineSymbol", "esri/symbols/SimpleMarkerSymbol",
        "esri/dijit/HomeButton",
-       "esri/tasks/RelationshipQuery",
+       "esri/tasks/RelationshipQuery","esri/domUtils","dojo/parser",
        "dojo/domReady!"
 ], function (
        Map, ArcGISDynamicMapServiceLayer, ImageParameters,RasterLayer,
@@ -60,38 +60,23 @@ require([
        FeatureLayer, InfoTemplate, Search,
        ClassBreaksRenderer, Color, BlendRenderer, SimpleRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol,
        HomeButton,
-       RelationshipQuery
+       RelationshipQuery,domUtils,parser
        ) {
     var map = new Map("map", {
         center:[108.363,23.094],
         logo: false
     });
-
-   
-    
     //全图
     var home = new HomeButton({
         map: map
     }, "HomeButton");
     home.startup();
-
-    var XZQ = new ArcGISDynamicMapServiceLayer("http://10.22.102.18:6080/arcgis/rest/services/basemap/MapServer", {
-        id: "DynamicXZQ"
-    });
-    map.addLayers(XZQ);
-    //XZQ.on("update-end", function () {
-    //    console.log("行政区动态图层加载完毕");
-    //});
-    
-
     //地图加载
     var tiled = new Tiled("http://10.22.102.18:6080/arcgis/rest/services/basemap/MapServer", {
         id: "XZQ",
         opacity:0.5
     });
-   map.addLayer(tiled);
-
-
+    map.addLayer(tiled);
 
     var blurCtrl = dom.byId("blurControl");
     var maxCtrl = dom.byId("maxControl");
@@ -170,7 +155,7 @@ require([
         mode: FeatureLayer.MODE_ONDEMAND,
         opacity: 1,
         outFields: ["*"],
-        infoTemplate: new InfoTemplate("医疗机构", "医疗机构：${NAME}<br/>机构ID：${JGID}")
+        infoTemplate: new InfoTemplate("医疗机构", "医疗机构：${NAME}<br/>机构ID：${JGID}<br/>ZZJGDM:${ZZJGDM}<br/>XZDM:${XZDM}" )
     });
     var relationQuery = new RelationshipQuery();
     relationQuery.relationshipId = 1;
@@ -219,8 +204,11 @@ require([
                 timeExtentChange();
                 break;
             case "Heat":
-                console.log("Heat");
                 timeExtentChange();
+                break;
+            case "Onset":
+                timeExtentChange();
+                
                 break;
             default: break;
         }
@@ -300,7 +288,7 @@ require([
             }
         }
         console.log("Line:" + line + "  Current:" + current);
-        if (current == undefined) {
+        if (current == undefined||line==current) {
             return;
         }
         var value = maptype.value;
@@ -319,7 +307,11 @@ require([
                 ShowerHeat();
                 console.log("热力图渐变结束");
                 break;
-            case "":
+            case "Onset":
+                map.addLayer(FBLayers[current]);
+                FBLayers[current].setOpacity(0);
+                ShowerOnset();
+                console.log("发病图渐变结束");
                 break;
             default: break;
         }
@@ -329,6 +321,7 @@ require([
        
     }
 
+    //疾病数据渐变
     var ShowerSituation = function () {
         
         var opacity = layers[current].opacity;
@@ -347,6 +340,7 @@ require([
         }   
     }
 
+    //热度图数据渐变
     var ShowerHeat = function () {
         var opacity = heatlayers[current].opacity;
         if (opacity < 1) {
@@ -363,23 +357,38 @@ require([
         }
     }
 
+    var ShowerOnset = function () {
+        var opacity = FBLayers[current].opacity;
+        if (opacity < 1) {
+            opacity += 0.05;
+            FBLayers[current].setOpacity(opacity);
+            if (line != undefined && line !== current) {
+                FBLayers[line].setOpacity(1 - opacity);
+                if (Number(1 - opacity) === 0) {
+                    map.removeLayer(FBLayers[line]);
+                }
+            }
+            setTimeout(ShowerOnset, 20);
+        }
+    }
+
     function GetLayerUrl(MapService) {
         return "http://" + host + "/arcgis/rest/services/"+MapService+"/MapServer/";
     }
     //基础链接
-   // var featureLayerUrl = 
+    //var featureLayerUrl = "http://" + host + "/arcgis/rest/services/data/MapServer/";
 
     function AddAllFeatureLayers() {
         for (var i = 0; i < data.length; i++) {
             console.log(GetLayerUrl("data") + data[i].id);
-            layers[i] = new FeatureLayer(GetLayerUrl("data") + data[i].id, {
+            layers[i] = new FeatureLayer(GetLayerUrl("Data") + data[i].id, {
                 mode: FeatureLayer.MODE_ONDEMAND,
                 opacity: 0,
                 visible: false,
                 outFields: ["*"],
                 infoTemplate: new InfoTemplate("疾病数据", "医疗机构：${JGID}<br/>名称：${NAME}<br/>疾病数据：${Data}<br/>时间：${Time}")
             });
-            heatlayers[i] = new FeatureLayer(GetLayerUrl("data") + data[i].id, {
+            heatlayers[i] = new FeatureLayer(GetLayerUrl("Data") + data[i].id, {
                 mode: FeatureLayer.MODE_SNAPSHOT,
                 opacity: 0,
                 visible: false,
@@ -394,14 +403,12 @@ require([
         map.addLayers(heatlayers);
     }
 
-    function AddFBLayers() {
+    function AddFBDynamicLayer() {
         for (var i = 0; i < data.length; i++) {
-            FBLayers[i] = new FeatureLayer(GetLayerUrl("FBT")+data[i].FBT, {
-                mode: FeatureLayer.MODE_SNAPSHOT,
+            FBLayers[i] = new ArcGISDynamicMapServiceLayer("http://10.22.102.18:6080/arcgis/rest/services/FBT/MapServer", {
                 opacity: 0,
-                visible: false,
-
-            })
+            });
+            FBLayers[i].setVisibleLayers([data[i].FBT]);
         }
     }
 
@@ -409,11 +416,11 @@ require([
     map.on("load", function () {
         AddAllFeatureLayers();
         console.log("0000");
-        console.log(GetLayerUrl("FBT2") + "1");
-        map.addLayer(new FeatureLayer("http://10.22.102.18:6080/arcgis/rest/services/FBT2/MapServer/1", {
-            mode: FeatureLayer.MODE_SNAPSHOT
-        }));
-        //AddDynamicLayer();
+        AddFBDynamicLayer();
+    });
+
+    map.on("update-end", function () {
+        console.log("加载结束");
     })
     
 
