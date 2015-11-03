@@ -1,6 +1,6 @@
 ﻿var g_alpha = 1;
 var bHalf = false;
-var host = "10.22.102.18:6080";
+var host = "http://" + arcgisServer + ":6080";
 
 var data = [
     { id: 35, Time: new Date("09/09/2014"), hid: 26, FBT: 1 }, { id: 34, Time: new Date("09/10/2014"), hid: 27, FBT: 2 },
@@ -45,51 +45,51 @@ var visible = [];
 var line;//当前一个图层序号
 var current;//即将切换到的图层序号
 require([
-       "esri/map", "esri/layers/ArcGISDynamicMapServiceLayer", "esri/layers/ImageParameters","esri/layers/RasterLayer",
-       "esri/layers/ArcGISTiledMapServiceLayer","esri/renderers/HeatmapRenderer",
-       "esri/dijit/TimeSlider","esri/TimeExtent","dojo/_base/array","dojo/dom","dojo/_base/connect",
+       "esri/map", "esri/layers/ArcGISDynamicMapServiceLayer", "esri/layers/ImageParameters", "esri/layers/RasterLayer",
+       "esri/layers/ArcGISTiledMapServiceLayer", "esri/renderers/HeatmapRenderer",
+       "esri/dijit/TimeSlider", "esri/TimeExtent", "dojo/_base/array", "dojo/dom", "dojo/_base/connect",
        "esri/layers/FeatureLayer", "esri/InfoTemplate", "esri/dijit/Search",
        "esri/renderers/ClassBreaksRenderer", "esri/Color", "esri/renderers/BlendRenderer", "esri/renderers/SimpleRenderer", "esri/symbols/SimpleFillSymbol", "esri/symbols/SimpleLineSymbol", "esri/symbols/SimpleMarkerSymbol",
        "esri/dijit/HomeButton",
        "esri/tasks/RelationshipQuery",
        "dojo/domReady!"
 ], function (
-       Map, ArcGISDynamicMapServiceLayer, ImageParameters,RasterLayer,
-       Tiled,HeatmapRenderer,
-       TimeSlider,TimeExtent,arrayUtils,dom,connect,
+       Map, ArcGISDynamicMapServiceLayer, ImageParameters, RasterLayer,
+       Tiled, HeatmapRenderer,
+       TimeSlider, TimeExtent, arrayUtils, dom, connect,
        FeatureLayer, InfoTemplate, Search,
        ClassBreaksRenderer, Color, BlendRenderer, SimpleRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol,
        HomeButton,
        RelationshipQuery
        ) {
     var map = new Map("map", {
-        center:[108.363,23.094],
+        center: [108.363, 23.094],
         logo: false
     });
 
-   
-    
+
+
     //全图
     var home = new HomeButton({
         map: map
     }, "HomeButton");
     home.startup();
 
-    var XZQ = new ArcGISDynamicMapServiceLayer("http://10.22.102.18:6080/arcgis/rest/services/basemap/MapServer", {
+    var XZQ = new ArcGISDynamicMapServiceLayer(host + "/arcgis/rest/services/basemap/MapServer", {
         id: "DynamicXZQ"
     });
     map.addLayers(XZQ);
     //XZQ.on("update-end", function () {
     //    console.log("行政区动态图层加载完毕");
     //});
-    
+
 
     //地图加载
-    var tiled = new Tiled("http://10.22.102.18:6080/arcgis/rest/services/basemap/MapServer", {
+    var tiled = new Tiled(host + "/arcgis/rest/services/basemap/MapServer", {
         id: "XZQ",
-        opacity:0.5
+        opacity: 0.5
     });
-   map.addLayer(tiled);
+    map.addLayer(tiled);
 
 
 
@@ -166,7 +166,7 @@ require([
 
 
     //医疗点数据
-    var HLayer = new FeatureLayer("http://10.22.102.18:6080/arcgis/rest/services/Data/MapServer/0", {
+    var HLayer = new FeatureLayer(host + "/arcgis/rest/services/Data/MapServer/0", {
         mode: FeatureLayer.MODE_ONDEMAND,
         opacity: 1,
         outFields: ["*"],
@@ -275,8 +275,8 @@ require([
 
     var timeSlider = new TimeSlider({
         style: "width:100%;",
-        thumbMovingRate:1000
-    }, dom.byId("timeSliderDiv")); 
+        thumbMovingRate: 1000
+    }, dom.byId("timeSliderDiv"));
     for (var i = 0; i < data.length; i++) {
         dates[i] = data[i].Time;
     }
@@ -288,7 +288,7 @@ require([
         timeExtentChange();
     });
 
-    var timeExtentChange = function () { 
+    var timeExtentChange = function () {
         var currentTime = timeSlider.getCurrentTimeExtent().endTime;
         dom.byId("modern").innerHTML = "<i>" + currentTime.getFullYear() + "年" + (currentTime.getMonth() + 1) + "月" + currentTime.getDate() + "日";
         for (var i = 0; i < data.length; i++) {
@@ -323,28 +323,28 @@ require([
                 break;
             default: break;
         }
-        
-        
-        
-       
+
+
+
+
     }
 
     var ShowerSituation = function () {
-        
+
         var opacity = layers[current].opacity;
         if (opacity < 1) {
             opacity += 0.05;
             layers[current].setOpacity(opacity);
-            if (line != undefined&&line!==current) {
+            if (line != undefined && line !== current) {
                 layers[line].setOpacity(1 - opacity);
                 if (Number(1 - opacity) === 0) {
                     layers[line].setVisibility(false);
                 }
-                console.log("图层" + line + "透明度：" + layers[line].opacity+";  图层"+current+"透明度："+layers[current].opacity);
+                console.log("图层" + line + "透明度：" + layers[line].opacity + ";  图层" + current + "透明度：" + layers[current].opacity);
             }
-            
+
             setTimeout(ShowerSituation, 50);
-        }   
+        }
     }
 
     var ShowerHeat = function () {
@@ -364,10 +364,10 @@ require([
     }
 
     function GetLayerUrl(MapService) {
-        return "http://" + host + "/arcgis/rest/services/"+MapService+"/MapServer/";
+        return host + "/arcgis/rest/services/" + MapService + "/MapServer/";
     }
     //基础链接
-   // var featureLayerUrl = 
+    // var featureLayerUrl = 
 
     function AddAllFeatureLayers() {
         for (var i = 0; i < data.length; i++) {
@@ -396,7 +396,7 @@ require([
 
     function AddFBLayers() {
         for (var i = 0; i < data.length; i++) {
-            FBLayers[i] = new FeatureLayer(GetLayerUrl("FBT")+data[i].FBT, {
+            FBLayers[i] = new FeatureLayer(GetLayerUrl("FBT") + data[i].FBT, {
                 mode: FeatureLayer.MODE_SNAPSHOT,
                 opacity: 0,
                 visible: false,
@@ -410,17 +410,17 @@ require([
         AddAllFeatureLayers();
         console.log("0000");
         console.log(GetLayerUrl("FBT2") + "1");
-        map.addLayer(new FeatureLayer("http://10.22.102.18:6080/arcgis/rest/services/FBT2/MapServer/1", {
+        map.addLayer(new FeatureLayer(host + "/arcgis/rest/services/FBT2/MapServer/1", {
             mode: FeatureLayer.MODE_SNAPSHOT
         }));
         //AddDynamicLayer();
     })
-    
+
 
     //搜索
     var s = new Search({
         sources: [{
-            featureLayer: new FeatureLayer("http://10.22.102.18:6080/arcgis/rest/services/Data/MapServer/0", {
+            featureLayer: new FeatureLayer(host + "/arcgis/rest/services/Data/MapServer/0", {
                 outFields: ["*"],
                 infoTemplate: new InfoTemplate("医疗机构", "医疗机构：${JGID}<br/>机构名称:${NAME}")
             }),

@@ -56,7 +56,7 @@
         var map = new Map("map", {
             logo:false
         });
-        var tiled = new Tiled("http://10.22.102.18:6080/arcgis/rest/services/NN/MapServer");
+        var tiled = new Tiled("http://127.0.0.1:6080/arcgis/rest/services/NN/MapServer");
         map.addLayer(tiled);
 
         var infoWindow = new InfoWindowLite(null, domConstruct.create("div", null, null, map.root));
@@ -66,7 +66,7 @@
         template.setTitle("<b>${JGID}-${NAME}<b/>");
         template.setContent("机构ID：${JGID} <br/> 医疗名称：${NAME}");
 
-        var featureLayer = new FeatureLayer("http://10.22.102.18:6080/arcgis/rest/services/NN/MapServer/1", {
+        var featureLayer = new FeatureLayer("http://127.0.0.1:6080/arcgis/rest/services/NN/MapServer/1", {
             mode: FeatureLayer.MODE_ONDEMAND,
             infoTemplate: template,
             outFields: ["JGID", "NAME"]
@@ -78,7 +78,7 @@
 
         var s = new Search({
             sources: [{
-                featureLayer: new FeatureLayer("http://10.22.102.18:6080/arcgis/rest/services/NN/MapServer/1", {
+                featureLayer: new FeatureLayer("http://127.0.0.1:6080/arcgis/rest/services/NN/MapServer/1", {
                     outFields: ["*"],
                     infoTemplate: new InfoTemplate("医疗机构", "医疗机构ID：${JGID}<br/> 机构名称：${NAME}<br/>")
                 }),

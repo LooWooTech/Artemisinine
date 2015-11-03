@@ -1,4 +1,5 @@
-﻿require([
+﻿var host = "http://" + arcgisServer + ":6080";
+require([
        "esri/map", "esri/layers/ArcGISDynamicMapServiceLayer", "esri/layers/ImageParameters",
        "esri/layers/ArcGISTiledMapServiceLayer",
        "esri/layers/FeatureLayer", "esri/InfoTemplate", "esri/dijit/Search",
@@ -15,13 +16,13 @@
     });
     var imageParameters = new ImageParameters();
     imageParameters.format = "png24";
-    var dynamicServiceLayer = new ArcGISDynamicMapServiceLayer("http://10.22.102.18:6080/arcgis/rest/services/basemap/MapServer", {
+    var dynamicServiceLayer = new ArcGISDynamicMapServiceLayer(host + "/arcgis/rest/services/basemap/MapServer", {
         "id": "basemap",
         "opacity": 1,
         "imageParameters": imageParameters
     });
 
-    var tiled = new Tiled("http://10.22.102.18:6080/arcgis/rest/services/basemap/MapServer");
+    var tiled = new Tiled(host + "/arcgis/rest/services/basemap/MapServer");
     map.addLayer(tiled);
     //map.addLayer(dynamicServiceLayer);
 
@@ -35,7 +36,7 @@
         valueUnit: "unknown"
     });
 
-    var layer = new FeatureLayer("http://10.22.102.18:6080/arcgis/rest/services/Data/MapServer/10", {
+    var layer = new FeatureLayer(host + "/arcgis/rest/services/Data/MapServer/10", {
         mode: FeatureLayer.MODE_ONDEMAND,
         opacity: 1,
         outFields: ["*"],
@@ -55,7 +56,7 @@
 
     var s = new Search({
         sources: [{
-            featureLayer: new FeatureLayer("http://10.22.102.18:6080/arcgis/rest/services/Data/MapServer/0", {
+            featureLayer: new FeatureLayer(host + "/arcgis/rest/services/Data/MapServer/0", {
                 outFields: ["*"],
                 infoTemplate: new InfoTemplate("医疗机构", "医疗机构：${JGID}<br/>机构名称:${NAME}")
             }),

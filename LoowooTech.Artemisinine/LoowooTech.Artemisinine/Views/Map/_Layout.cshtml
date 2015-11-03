@@ -1,5 +1,6 @@
 ﻿@{
     Layout = null;
+    string arcgisServer = AppSettings.Current["SERVER"];
 }
 
 <!DOCTYPE html>
@@ -13,10 +14,13 @@
     <link rel="stylesheet"  href="~/Content/main.min.css" />
     <script src="~/Scripts/jquery-2.1.4.min.js"></script>
     <script src="~/Scripts/bootstrap.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="http://10.22.102.18/arcgis_js_api/library/3.14/3.14/dijit/themes/tundra/tundra.css" />
-    <link rel="stylesheet" type="text/css" href="http://10.22.102.18/arcgis_js_api/library/3.14/3.14/esri/css/esri.css" />
-    <link rel="stylesheet" type="text/css" href="http://10.22.102.18/arcgis_js_api/library/3.14/3.14/dijit/themes/claro/claro.css" />
-    <script src="http://10.22.102.18/arcgis_js_api/library/3.14/3.14/init.js"></script>
+    <script>
+        var arcgisServer = "@(arcgisServer)";
+    </script>
+    <link rel="stylesheet" type="text/css" href="http://@(arcgisServer)/arcgis_js_api/library/3.14/3.14/dijit/themes/tundra/tundra.css" />
+    <link rel="stylesheet" type="text/css" href="http://@(arcgisServer)/arcgis_js_api/library/3.14/3.14/esri/css/esri.css" />
+    <link rel="stylesheet" type="text/css" href="http://@(arcgisServer)/arcgis_js_api/library/3.14/3.14/dijit/themes/claro/claro.css" />
+    <script src="http://@(arcgisServer)/arcgis_js_api/library/3.14/3.14/init.js"></script>
 </head>
 <body class="claro">
     @RenderBody()
