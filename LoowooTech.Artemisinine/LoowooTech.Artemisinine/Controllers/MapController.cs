@@ -40,8 +40,6 @@ namespace LoowooTech.Artemisinine.Controllers
 
         public ActionResult Query(string JGID)
         {
-            //ESRI.ArcGIS.RuntimeManager.Bind(ESRI.ArcGIS.ProductCode.EngineOrDesktop);
-           
             var list = GISManager.GetValues(JGID);
             
             ViewBag.List = list;
