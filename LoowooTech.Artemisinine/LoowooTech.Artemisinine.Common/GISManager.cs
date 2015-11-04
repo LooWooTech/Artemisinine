@@ -679,6 +679,12 @@ namespace LoowooTech.Artemisinine.Common
             return 0.0;
 
         }
+        /// <summary>
+        /// 行政区某种疾病的发病趋势图
+        /// </summary>
+        /// <param name="XZC">行政区名</param>
+        /// <param name="sicktype">疾病类型</param>
+        /// <returns>时间点 疾病值</returns>
         public static Dictionary<DateTime, double> GetTrend(string XZC, Sick sicktype)
         {
             var dict = new Dictionary<DateTime, double>();
@@ -705,7 +711,32 @@ namespace LoowooTech.Artemisinine.Common
                 }
             }
             return dict;
-        } 
+        }
+
+        /// <summary>
+        /// 某个时间段之内某种疾病各区域对比图
+        /// </summary>
+        /// <param name="StartTime">开始时间</param>
+        /// <param name="EndTime">结束时间</param>
+        /// <param name="sicktype">疾病类型</param>
+        /// <returns>行政区对应的每个时间点的发病值</returns>
+        public static Dictionary<string, Dictionary<DateTime,double>> GetComparison(DateTime StartTime,DateTime EndTime, Sick sicktype)
+        {
+            var dict=new Dictionary<string, Dictionary<DateTime,double>>();
+            return dict;
+        }
+        /// <summary>
+        /// 某个时间某个区域多种疾病发病对比图
+        /// </summary>
+        /// <param name="Time"></param>
+        /// <param name="XZC"></param>
+        /// <returns></returns>
+
+        public static Dictionary<DateTime,double> GetComparison(DateTime Time, string XZC)
+        {
+            var dict = new Dictionary<DateTime, double>();
+            return dict;
+        }
         
     }
 }
