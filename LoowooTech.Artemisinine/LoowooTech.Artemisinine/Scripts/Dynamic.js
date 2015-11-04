@@ -44,6 +44,7 @@ var layer;
 var visible = [];
 var line;//当前一个图层序号
 var current;//即将切换到的图层序号
+var Type="Place";//记录当前图层类型
 require([
        "esri/map", "esri/layers/ArcGISDynamicMapServiceLayer", "esri/layers/ImageParameters", "esri/layers/RasterLayer",
        "esri/layers/ArcGISTiledMapServiceLayer", "esri/renderers/HeatmapRenderer",
@@ -67,6 +68,8 @@ require([
         logo: false
     });
 
+
+
     //全图
     var home = new HomeButton({
         map: map
@@ -78,11 +81,6 @@ require([
         id: "DynamicXZQ"
     });
     map.addLayers(XZQ);
-    //XZQ.on("update-end", function () {
-    //    console.log("行政区动态图层加载完毕");
-    //});
-
-
     //地图加载
     var tiled = new Tiled(host + "/arcgis/rest/services/basemap/MapServer", {
         id: "XZQ",
@@ -90,7 +88,7 @@ require([
     });
     map.addLayer(tiled);
 
-
+    var blurDiv = dom.byId("blurInfo");
     var blurCtrl = dom.byId("blurControl");
     var maxCtrl = dom.byId("maxControl");
     var minCtrl = dom.byId("minControl");
@@ -120,7 +118,6 @@ require([
         var r = +evt.target.value;
         if (r !== heatmapRenderer.blurRadius) {
             heatmapRenderer.blurRadius = r;
-            //heatmapFeatureLayer.redraw();
             heatlayers[current].redraw();
         }
     });
@@ -129,7 +126,6 @@ require([
         var r = +evt.target.value;
         if (r !== heatmapRenderer.maxPixelIntensity) {
             heatmapRenderer.maxPixelIntensity = r;
-            //heatmapFeatureLayer.redraw();
             heatlayers[current].redraw();
         }
     });
@@ -138,7 +134,6 @@ require([
         var r = +evt.target.value;
         if (r !== heatmapRenderer.minPixelIntensity) {
             heatmapRenderer.minPixelIntensity = r;
-            //heatmapFeatureLayer.redraw();
             heatlayers[current].redraw();
         }
     });
@@ -157,7 +152,6 @@ require([
 
         }
         heatmapRenderer.field = (chk) ? "Data" : null;
-        //heatmapFeatureLayer.redraw();
         heatlayers[current].redraw();
     });
 
@@ -172,13 +166,14 @@ require([
     });
     var relationQuery = new RelationshipQuery();
     relationQuery.relationshipId = 1;
-    connect.connect(HLayer, "onClick", function (evt) {
+    //点击医疗机构图层事件
+    HLayer.on("click", function (evt) {
         var grapicAttributes = evt.graphic.attributes;
         console.log(grapicAttributes.JGID);
         dom.byId("name").innerHTML = grapicAttributes.NAME;
         dom.byId("DList").src = "/Map/Query?JGID=" + grapicAttributes.JGID;
         dom.byId("DChart").src = "/Map/Chart?JGID=" + grapicAttributes.JGID;
-    });
+    })
     //医疗机构图例
     var Hrenderer = new SimpleRenderer(new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 5, new SimpleLineSymbol(SimpleFillSymbol.STYLE_SOLID, new Color([255, 255, 255]), 1), new Color([255, 255, 255])));
 
@@ -209,71 +204,55 @@ require([
         var value = maptype.value;
         console.log(value);
         mapTypeChange();
-        switch (value) {
-            case "Place":
-                HLayer.setVisibility(true);
-                break;
-            case "Situation":
-                timeExtentChange();
-                break;
-            case "Heat":
-                timeExtentChange();
-                break;
-            case "Onset":
-                timeExtentChange();
-                
-                break;
-            default: break;
-        }
+        Type = value;
+        timeExtentChange();
     });
 
-    var chartmode = dom.byId("chartmode");
-    connect.connect(chartmode, "onchange", function () {
-        var value = chartmode.value;
-        console.log(value);
-        switch (value) {
-            case "Day":
-
-                break;
-            case "Month":
-
-                break;
-            case "Year":
-
-                break;
-            default:
-                break;
-        }
-    })
-
-    var sicktype = dom.byId("SickType");
-    connect.connect(sicktype, "onchange", function () {
-        var value = sicktype.value;
-        switch (value) {
-            case "Rabies":
-                break;
-            case "AA":
-                break;
-            default: break;
-        }
-    })
 
     var mapTypeChange = function () {
-        HLayer.setVisibility(false);
-        if (current != undefined) {
-            layers[current].setVisibility(false);
-            layers[current].setOpacity(0);
-            heatlayers[current].setVisibility(false);
-            heatlayers[current].setOpacity(0);
-        }
-        if (line != undefined) {
-            layers[line].setVisibility(false);
-            layers[line].setOpacity(0);
-            heatlayers[line].setVisibility(false);
-            heatlayers[line].setOpacity(0);
+        //当切换图层的时候，首先获取之前的图层模式，根据之前的图层模式，处理相应的数据设置
+        switch (Type) {
+            case "Place":
+                HLayer.setVisibility(false);
+                break;
+            case "Situation":
+                if (current != undefined) {
+                    layers[current].setVisibility(false);
+                    layers[current].setOpacity(0);
+                }
+                if (line != undefined) {
+                    layers[line].setVisibility(false);
+                    layers[line].setOpacity(0);
+                }
+                break;
+            case "Heat":
+                if (current != undefined) {
+                    heatlayers[current].setVisibility(false);
+                    heatlayers[current].setOpacity(0);
+                }
+
+                if (line != undefined) {
+                    heatlayers[line].setVisibility(false);
+                    heatlayers[line].setOpacity(0);
+                }
+                domUtils.hide(blurDiv);
+                break;
+            case "Onset":
+                for (item in FBLayers) {
+                    map.removeLayer(item);
+                }
+                if (current != undefined) {
+                    map.removeLayer(FBLayers[current]);
+                }
+                if (line != undefined) {
+                    map.removeLayer(FBLayers[line]);
+                }
+                break;
+            default: break;
         }
     }
 
+    //时间条创建
     var timeSlider = new TimeSlider({
         style: "width:100%;",
         thumbMovingRate: 1000
@@ -302,27 +281,30 @@ require([
         }
         console.log("Line:" + line + "  Current:" + current);
 
-        if (current == undefined||line==current) {
+        if (current == undefined) {
             return;
         }
         var value = maptype.value;
         switch (value) {
-            case "Place":
+            case "Place"://医疗机构
+                HLayer.setVisibility(true);
                 return;
-            case "Situation":
+            case "Situation"://疾病数据
                 layers[current].setVisibility(true);
                 console.log("医疗疾病数据从图层编号：" + line + "切换到图层编号：" + current);
                 ShowerSituation();
                 console.log("医疗疾病数据渐变结束");
                 break;
-            case "Heat":
+            case "Heat"://热度图
+                domUtils.show(blurDiv);
                 heatlayers[current].setVisibility(true);
                 console.log("热力图层从编号：" + line + "切换到图层编号为：" + current);
                 ShowerHeat();
                 console.log("热力图渐变结束");
                 break;
-            case "Onset":
+            case "Onset"://发病图
                 if (current != undefined) {
+                    FBLayers[current].setVisibility(true);
                     map.addLayer(FBLayers[current]);
                     FBLayers[current].setOpacity(0);
                 }
@@ -382,6 +364,7 @@ require([
             if (line != undefined && line !== current) {
                 FBLayers[line].setOpacity(1 - opacity);
                 if (Number(1 - opacity) === 0) {
+                    FBLayers[line].setVisibility(false);
                     map.removeLayer(FBLayers[line]);
                 }
             }
@@ -423,6 +406,7 @@ require([
         for (var i = 0; i < data.length; i++) {
             FBLayers[i] = new ArcGISDynamicMapServiceLayer(GetLayerUrl("FBT"), {
                 opacity: 0,
+                visible:false
             });
             FBLayers[i].setVisibleLayers([data[i].FBT]);
         }
@@ -431,7 +415,6 @@ require([
     //加载所有的疾病数据图层
     map.on("load", function () {
         AddAllFeatureLayers();
-        console.log("0000");
         AddFBDynamicLayer();
     });
 

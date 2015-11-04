@@ -160,6 +160,7 @@
   <ItemGroup>
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootswatch.min.css" />
+    <Content Include="Content\jquery.shCircleLoader.css" />
     <Content Include="Content\main.min.css" />
     <Content Include="Fields.xml" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
@@ -178,6 +179,7 @@
     <Content Include="Scripts\jquery-1.9.1.js" />
     <Content Include="Scripts\jquery-1.9.1.min.js" />
     <Content Include="Scripts\jquery-2.1.4.min.js" />
+    <Content Include="Scripts\jquery.shCircleLoader-min.js" />
     <Content Include="Scripts\map.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>

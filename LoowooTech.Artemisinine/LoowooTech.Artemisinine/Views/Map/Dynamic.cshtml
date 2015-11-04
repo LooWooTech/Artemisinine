@@ -103,6 +103,14 @@
 </style>
 <script src="~/Maps/Info.js"></script>
 <script src="~/Scripts/Dynamic.js"></script>
+<script src="~/Scripts/jquery.shCircleLoader-min.js"></script>
+<script>
+    $(function () {
+        $("#blurInfo").hide();
+        $("#loader").shCircleLoader({color:"Red"});
+    })
+</script>
+
 <div data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'headline'" style="width:100%;height:100%;margin:0;">
     <div id="Search"></div>
     <div class="row">
@@ -185,8 +193,9 @@
                 </div>
             </div> 
         </div>
+        
     </div>
-
+    <div id="loader" style="padding-left:200px;margin-top:200px;"></div>
     <div class="blurInfo" id="blurInfo">
         <p>
             <label for="valueControl">Weight by Data</label>
@@ -200,4 +209,5 @@
         <input id="minControl" type="range" max="500" min="0" value="0" step="1" />
     </div>
 </div>
+
 
