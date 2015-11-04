@@ -28,6 +28,7 @@ namespace LoowooTech.Artemisinine.Common
             StringBuilder Labelsb = new StringBuilder();
             StringBuilder datasb = new StringBuilder();
             var list = new List<DateTime>(dict.Keys);
+           // for(var i=0 count=list.Count;i<coun)
             foreach (var key in dict.Keys)
             {
                 Labelsb.Append('"' + key.ToShortDateString().ToString() + '"');
