@@ -2,61 +2,67 @@
     ViewBag.Title = "地图";
     Layout = "~/Views/Map/_Layout.cshtml";
 }
-
 <style>
-     html,body,#map{
-        height: 100%; width: 100%; margin: 0; padding: 0; 
+    html, body, #map {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
     }
-      #search {
-         display: block;
-         position: absolute;
-         z-index: 2;
-         top: 20px;
-         left: 74px;
-      }
-       #menu{
-         position:absolute;
-         z-index:2;
-         top:20px;
-         left:74px;
-     }
-       #bottomPanel{
-           left:50%;
-           margin:0 auto;
-           margin-left:-500px;
-           position:absolute;
-           bottom:2.5em;
-       }
-       #timeInfo{
-           border-radius:4px;
-           border:solid 2px #ccc;
-           background-color:#fff;
-           display:block;
-           padding:5px;
-           position:relative;
-           text-align:center;
-           width:1000px;
-           z-index:99;
-       }
-</style>
 
+    #search {
+        display: block;
+        position: absolute;
+        z-index: 2;
+        top: 20px;
+        left: 74px;
+    }
+
+    #menu {
+        position: absolute;
+        z-index: 2;
+        top: 20px;
+        left: 74px;
+    }
+
+    #bottomPanel {
+        left: 50%;
+        margin: 0 auto;
+        margin-left: -500px;
+        position: absolute;
+        bottom: 2.5em;
+    }
+
+    #timeInfo {
+        border-radius: 4px;
+        border: solid 2px #ccc;
+        background-color: #fff;
+        display: block;
+        padding: 5px;
+        position: relative;
+        text-align: center;
+        width: 1000px;
+        z-index: 99;
+    }
+</style>
 <script>
+    var host = "http://" + arcgisServer + ":6080";
     require([
-        "esri/map","esri/layers/FeatureLayer","esri/dijit/Search","esri/InfoTemplate",
+        "esri/map", "esri/layers/FeatureLayer", "esri/dijit/Search", "esri/InfoTemplate",
         "esri/layers/ArcGISTiledMapServiceLayer",
         "esri/dijit/InfoWindowLite", "dojo/dom-construct",
-        "esri/dijit/TimeSlider","esri/TimeExtent","dojo/dom",
+        "esri/dijit/TimeSlider", "esri/TimeExtent", "dojo/dom",
         "dojo/domReady!"
     ], function (
-        Map,FeatureLayer,Search,InfoTemplate,
+        Map, FeatureLayer, Search, InfoTemplate,
         Tiled,
-        InfoWindowLite,domConstruct,
-        TimeSlider,TimeExtent,dom
+        InfoWindowLite, domConstruct,
+        TimeSlider, TimeExtent, dom
         ) {
         var map = new Map("map", {
-            logo:false
+            logo: false
         });
-        var tiled = new Tiled("http://127.0.0.1:6080/arcgis/rest/services/NN/MapServer");
+        var tiled = new Tiled(host + "/arcgis/rest/services/NN/MapServer");
         map.addLayer(tiled);
 
         var infoWindow = new InfoWindowLite(null, domConstruct.create("div", null, null, map.root));
@@ -66,7 +72,7 @@
         template.setTitle("<b>${JGID}-${NAME}<b/>");
         template.setContent("机构ID：${JGID} <br/> 医疗名称：${NAME}");
 
-        var featureLayer = new FeatureLayer("http://127.0.0.1:6080/arcgis/rest/services/NN/MapServer/1", {
+        var featureLayer = new FeatureLayer(host + "/arcgis/rest/services/NN/MapServer/1", {
             mode: FeatureLayer.MODE_ONDEMAND,
             infoTemplate: template,
             outFields: ["JGID", "NAME"]
@@ -78,7 +84,7 @@
 
         var s = new Search({
             sources: [{
-                featureLayer: new FeatureLayer("http://127.0.0.1:6080/arcgis/rest/services/NN/MapServer/1", {
+                featureLayer: new FeatureLayer(host + "/arcgis/rest/services/NN/MapServer/1", {
                     outFields: ["*"],
                     infoTemplate: new InfoTemplate("医疗机构", "医疗机构ID：${JGID}<br/> 机构名称：${NAME}<br/>")
                 }),
@@ -135,7 +141,6 @@
                     </button>
                     <a class="navbar-brand" href="/Home/Index">疾病大数据</a>
                 </div>
-
                 <div class="collapse navbar-collapse" id="navbar-menu">
                     <ul class="nav navbar-nav">
                         <li><a href="#">地图<span class="sr-only">(current)</span></a></li>
@@ -169,5 +174,5 @@
             <div id="timeSliderDiv"></div>
         </div>
     </div>
-    
+
 </div>
