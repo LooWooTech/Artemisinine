@@ -56,7 +56,6 @@ namespace LoowooTech.Artemisinine.Common
             CityName = System.Configuration.ConfigurationManager.AppSettings["QNAME"];
             SDEWorkspace = OpenSde();
         }
-
         private static void InitSDE()
         {
             if (SDEWorkspace == null)
@@ -142,7 +141,6 @@ namespace LoowooTech.Artemisinine.Common
 
 
         }
-        
         private static List<NField> GetInitFields()
         {
             if (configXml == null)
@@ -544,7 +542,6 @@ namespace LoowooTech.Artemisinine.Common
             }
             
         }
-
         //保存到一个要素类中
         public static void OperateSum(Dictionary<DateTime, List<Disease>> Dict, string Thing)
         {
@@ -578,7 +575,7 @@ namespace LoowooTech.Artemisinine.Common
         /// </summary>
         /// <param name="workspace"></param>
         /// <returns></returns>
-        private static List<string> GetFeatureClassNames(IWorkspace workspace)
+        private static List<string> GetFeatureClassNames(IWorkspace workspace,string key="")
         {
             var list = new List<string>();
             IFeatureWorkspace featureWorkspace = workspace as IFeatureWorkspace;
@@ -589,12 +586,15 @@ namespace LoowooTech.Artemisinine.Common
             {
                 if (datasetName.Type == esriDatasetType.esriDTFeatureClass)
                 {
-                    list.Add(datasetName.Name);
+                    if (datasetName.Name.Contains(key))
+                    {
+                        list.Add(datasetName.Name);
+                    }
                 }
                 datasetName = enumDatasetName.Next();
             }
             return list;
-        }
+        }   
         /// <summary>
         /// 查询医疗机构的所有疾病数据
         /// </summary>
@@ -643,7 +643,6 @@ namespace LoowooTech.Artemisinine.Common
             }
             return null;
         }
-
         public static List<string> GetList(IFeatureClass featureClass,int Index,string Filter=null)
         {
             var list = new List<string>();
@@ -663,6 +662,50 @@ namespace LoowooTech.Artemisinine.Common
             System.Runtime.InteropServices.Marshal.ReleaseComObject(featureCursor);
             return list;
         }
+        private static double Statistics(IFeatureClass featureClass, string FieldName,string Filter)
+        {
+            IQueryFilter queryFilter = new QueryFilterClass();
+            queryFilter.WhereClause = Filter;
+            IFeatureCursor featureCursor = featureClass.Search(queryFilter, false);
+            ICursor cursor = featureCursor as ICursor;
+            if (cursor != null)
+            {
+                IDataStatistics datastatistics = new DataStatisticsClass();
+                datastatistics.Cursor = cursor;
+                datastatistics.Field = FieldName;
+                IStatisticsResults statisticResult = datastatistics.Statistics;
+                return statisticResult.Sum;
+            }
+            return 0.0;
+
+        }
+        public static Dictionary<DateTime, double> GetTrend(string XZC, Sick sicktype)
+        {
+            var dict = new Dictionary<DateTime, double>();
+            if (SDEWorkspace != null)
+            {
+                var list = GetFeatureClassNames(SDEWorkspace, sicktype.ToString() + sicktype.GetDescription() + SicknessName);
+                foreach (var item in list)
+                {
+                    var entry = item.Split('.');
+                    if (entry.Count() != 3)
+                    {
+                        continue;
+                    }
+                    var time = ExcelHelper.GetDateTime(entry[2]);
+                    if (!dict.ContainsKey(time))
+                    {
+                        var featureClass = GetFeatureClass(SDEWorkspace, item);
+                        if (featureClass == null)
+                        {
+                            continue;
+                        }
+                        dict.Add(time, Statistics(featureClass, "Data", "XZC=" + XZC));
+                    }
+                }
+            }
+            return dict;
+        } 
         
     }
 }

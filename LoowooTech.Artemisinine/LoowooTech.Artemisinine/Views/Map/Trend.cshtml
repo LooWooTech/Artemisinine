@@ -14,12 +14,18 @@
         var xzcselect = dom.byId("XZC");
         var sickselect = dom.byId("Sick");
         var title = dom.byId("Title");
+        var iframebtn = dom.byId("frame");
         connect.connect(xzcselect, "onchange", function () {
-            title.innerHTML = xzcselect.value + sickselect.value;
+            selectChange();
         });
         connect.connect(sickselect, "onchange", function () {
-            title.innerHTML = xzcselect.value + sickselect.value;
+            selectChange();
         });
+
+        function selectChange() {
+            title.innerHTML = xzcselect.value + sickselect.value;
+            iframebtn.src = "/Map/ChartLine?XZC=" + xzcselect.value + "&&sick=" + sickselect.value;
+        }
     })
 </script>
 
@@ -54,7 +60,7 @@
     </div>
     <div class="form-group">
         <div class="col-lg-4 col-lg-offset-2">
-            <iframe  src="http://www.baidu.com" height="500" width="600" frameborder="0"></iframe>
+            <iframe  src="http://www.baidu.com" height="500" width="600" frameborder="0" id="frame"></iframe>
         </div>
         
     </div>
