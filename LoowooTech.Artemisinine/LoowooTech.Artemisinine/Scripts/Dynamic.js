@@ -3,23 +3,23 @@ var bHalf = false;
 var host = "http://" + arcgisServer + ":6080";
 
 var data = [
-    { id: 35, Time: new Date("09/09/2014"), hid: 26, FBT: 1 }, { id: 34, Time: new Date("09/10/2014"), hid: 27, FBT: 2 },
-    { id: 33, Time: new Date("09/11/2014"), hid: 28, FBT: 3 }, { id: 32, Time: new Date("09/12/2014"), hid: 29, FBT: 4 },
-    { id: 31, Time: new Date("10/01/2014"), hid: 30, FBT: 5 }, { id: 30, Time: new Date("10/02/2014"), hid: 31, FBT: 6 },
-    { id: 29, Time: new Date("10/03/2014"), hid: 32, FBT: 7 }, { id: 28, Time: new Date("10/04/2014"), hid: 33, FBT: 8 },
-    { id: 27, Time: new Date("10/05/2014"), hid: 34, FBT: 9 }, { id: 17, Time: new Date("09/01/2015"), hid: 1, FBT: 11 },
-    { id: 16, Time: new Date("09/02/2015"), hid: 2, FBT: 12 }, { id: 15, Time: new Date("09/03/2015"), hid: 3, FBT: 13 },
-    { id: 14, Time: new Date("09/04/2015"), hid: 4, FBT: 14 }, { id: 13, Time: new Date("09/05/2015"), hid: 5, FBT: 15 },
-    { id: 12, Time: new Date("09/06/2015"), hid: 6, FBT: 16 }, { id: 11, Time: new Date("09/07/2015"), hid: 7, FBT: 17 },
-    { id: 18, Time: new Date("09/08/2015"), hid: 8, FBT: 18 }, { id: 10, Time: new Date("09/09/2015"), hid: 9, FBT: 19 },
-    { id: 9, Time: new Date("09/10/2015"), hid: 10, FBT: 20 }, { id: 8, Time: new Date("09/11/2015"), hid: 11, FBT: 21 },
-    { id: 7, Time: new Date("09/12/2015"), hid: 12, FBT: 22 }, { id: 6, Time: new Date("10/01/2015"), hid: 13, FBT: 23 },
-    { id: 5, Time: new Date("10/02/2015"), hid: 14, FBT: 24 }, { id: 4, Time: new Date("10/03/2015"), hid: 15, FBT: 25 },
-    { id: 3, Time: new Date("10/04/2015"), hid: 16, FBT: 26 }, { id: 2, Time: new Date("10/05/2015"), hid: 17, FBT: 27 },
-    { id: 25, Time: new Date("10/06/2015"), hid: 18, FBT: 28 }, { id: 24, Time: new Date("10/07/2015"), hid: 19, FBT: 29 },
-    { id: 23, Time: new Date("10/08/2015"), hid: 20, FBT: 30 }, { id: 22, Time: new Date("10/09/2015"), hid: 21, FBT: 31 },
-    { id: 21, Time: new Date("10/10/2015"), hid: 22, FBT: 32 }, { id: 20, Time: new Date("10/11/2015"), hid: 23, FBT: 33 },
-    { id: 19, Time: new Date("10/12/2015"), hid: 24, FBT: 34 }
+    { id: 35, Time: new Date("09/09/2014"), hid: 26, FBT: 1 ,Ellipse:34}, { id: 34, Time: new Date("09/10/2014"), hid: 27, FBT: 2,Ellipse:33 },
+    { id: 33, Time: new Date("09/11/2014"), hid: 28, FBT: 3,Ellipse:32 }, { id: 32, Time: new Date("09/12/2014"), hid: 29, FBT: 4,Ellipse:31 },
+    { id: 31, Time: new Date("10/01/2014"), hid: 30, FBT: 5,Ellipse:30 }, { id: 30, Time: new Date("10/02/2014"), hid: 31, FBT: 6,Ellipse:29 },
+    { id: 29, Time: new Date("10/03/2014"), hid: 32, FBT: 7,Ellipse:28 }, { id: 28, Time: new Date("10/04/2014"), hid: 33, FBT: 8,Ellipse:27 },
+    { id: 27, Time: new Date("10/05/2014"), hid: 34, FBT: 9,Ellipse:26 }, { id: 17, Time: new Date("09/01/2015"), hid: 1, FBT: 11,Ellipse:16 },
+    { id: 16, Time: new Date("09/02/2015"), hid: 2, FBT: 12,Ellipse:15 }, { id: 15, Time: new Date("09/03/2015"), hid: 3, FBT: 13,Ellipse:14 },
+    { id: 14, Time: new Date("09/04/2015"), hid: 4, FBT: 14,Ellipse:13 }, { id: 13, Time: new Date("09/05/2015"), hid: 5, FBT: 15,Ellipse:12 },
+    { id: 12, Time: new Date("09/06/2015"), hid: 6, FBT: 16,Ellipse:11 }, { id: 11, Time: new Date("09/07/2015"), hid: 7, FBT: 17,Ellipse:10 },
+    { id: 18, Time: new Date("09/08/2015"), hid: 8, FBT: 18,Ellipse:17 }, { id: 10, Time: new Date("09/09/2015"), hid: 9, FBT: 19,Ellipse:9 },
+    { id: 9, Time: new Date("09/10/2015"), hid: 10, FBT: 20,Ellipse:8 }, { id: 8, Time: new Date("09/11/2015"), hid: 11, FBT: 21,Ellipse:7 },
+    { id: 7, Time: new Date("09/12/2015"), hid: 12, FBT: 22,Ellipse:6 }, { id: 6, Time: new Date("10/01/2015"), hid: 13, FBT: 23,Ellipse:5 },
+    { id: 5, Time: new Date("10/02/2015"), hid: 14, FBT: 24,Ellipse:4 }, { id: 4, Time: new Date("10/03/2015"), hid: 15, FBT: 25,Ellipse:3 },
+    { id: 3, Time: new Date("10/04/2015"), hid: 16, FBT: 26,Ellipse:2 }, { id: 2, Time: new Date("10/05/2015"), hid: 17, FBT: 27,Ellipse:1 },
+    { id: 25, Time: new Date("10/06/2015"), hid: 18, FBT: 28,Ellipse:24 }, { id: 24, Time: new Date("10/07/2015"), hid: 19, FBT: 29,Ellipse:23 },
+    { id: 23, Time: new Date("10/08/2015"), hid: 20, FBT: 30,Ellipse:24 }, { id: 22, Time: new Date("10/09/2015"), hid: 21, FBT: 31,Ellipse:21 },
+    { id: 21, Time: new Date("10/10/2015"), hid: 22, FBT: 32,Ellipse:20 }, { id: 20, Time: new Date("10/11/2015"), hid: 23, FBT: 33,Ellipse:19 },
+    { id: 19, Time: new Date("10/12/2015"), hid: 24, FBT: 34,Ellipse:18 }
 ]
 
 var data2 = [
@@ -40,11 +40,12 @@ var indexs = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
 var layers = new Array();//每个时间段的疾病数据图层
 var heatlayers = new Array();//每个时间段的热度图图层
 var FBLayers = new Array();//每个时间段的发病图图层
+var Ellipses = new Array();//每个时间段的椭圆图
 var layer;
 var visible = [];
 var line;//当前一个图层序号
 var current;//即将切换到的图层序号
-var Type="Place";//记录当前图层类型
+var Type = "Place";//记录当前图层类型
 require([
        "esri/map", "esri/layers/ArcGISDynamicMapServiceLayer", "esri/layers/ImageParameters", "esri/layers/RasterLayer",
        "esri/layers/ArcGISTiledMapServiceLayer", "esri/renderers/HeatmapRenderer",
@@ -67,8 +68,7 @@ require([
         center:[108.363,23.094],
         logo: false
     });
-
-
+ 
 
     //全图
     var home = new HomeButton({
@@ -199,6 +199,9 @@ require([
         maxDataValue: 100,
         valueUnit: "unknown"
     });
+    //椭圆图图例
+   // var ellipseRenderer = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT, new Color([255, 0, 0]), 2), new Color([255, 255, 0, 0.25]));
+
     var maptype = dojo.byId("MapType");
     dojo.connect(maptype, "onchange", function SelectChange() {
         var value = maptype.value;
@@ -238,14 +241,15 @@ require([
                 domUtils.hide(blurDiv);
                 break;
             case "Onset":
-                for (item in FBLayers) {
-                    map.removeLayer(item);
+                var count = FBLayers.length;
+                for (var i = 0; i < count; i++) {
+                    map.removeLayer(FBLayers[i]);
                 }
-                if (current != undefined) {
-                    map.removeLayer(FBLayers[current]);
-                }
-                if (line != undefined) {
-                    map.removeLayer(FBLayers[line]);
+                break;
+            case "Ellipse":
+                var count = Ellipses.length;
+                for (var i = 0; i < count; i++) {
+                    map.removeLayer(Ellipses[i]);
                 }
                 break;
             default: break;
@@ -285,6 +289,7 @@ require([
             return;
         }
         var value = maptype.value;
+        
         switch (value) {
             case "Place"://医疗机构
                 HLayer.setVisibility(true);
@@ -312,6 +317,13 @@ require([
                 ShowerOnset();
                 console.log("发病图渐变结束");
                 break;
+            case "Ellipse":
+                if (current != undefined) {
+                    map.addLayer(Ellipses[current]);
+                    Ellipses[current].setOpacity(0);
+                }
+                ShowEllipse();
+                break;
             default: break;
         }
 
@@ -337,6 +349,7 @@ require([
 
             setTimeout(ShowerSituation, 50);
         }
+        flag = false;
     }
 
     //热度图数据渐变
@@ -348,14 +361,17 @@ require([
             if (line != undefined && line !== current) {
                 heatlayers[line].setOpacity(1 - opacity);
                 if (Number(1 - opacity) === 0) {
+                    flag = false;
                     heatlayers[line].setVisibility(false);
                 }
                 console.log("图层" + line + "透明度:" + heatlayers[line].opacity + "; 图层" + current + "透明度：" + heatlayers[current].opacity);
             }
             setTimeout(ShowerHeat, 20);
         }
+        
     }
 
+    //发病图数据渐变
     var ShowerOnset = function () {
         var opacity = FBLayers[current].opacity;
         if (opacity < 1) {
@@ -369,6 +385,22 @@ require([
                 }
             }
             setTimeout(ShowerOnset, 20);
+        }
+    }
+
+    var ShowEllipse = function () {
+        var opacity = Ellipses[current].opacity;
+        if (opacity < 1) {
+            opacity += 0.05;
+            Ellipses[current].setOpacity(opacity);
+            if (line != undefined && line !== current) {
+                Ellipses[line].setOpacity(1 - opacity);
+                if (Number(1 - opacity) === 0) {
+                    //Ellipses[line].setVisibility(false);
+                    map.removeLayer(Ellipses[line]);
+                }
+            }
+            setTimeout(ShowEllipse, 20);
         }
     }
 
@@ -402,20 +434,24 @@ require([
         map.addLayers(heatlayers);
     }
 
-    function AddFBDynamicLayer() {
+    function AddDynamicLayer() {
         for (var i = 0; i < data.length; i++) {
             FBLayers[i] = new ArcGISDynamicMapServiceLayer(GetLayerUrl("FBT"), {
                 opacity: 0,
                 visible:false
             });
             FBLayers[i].setVisibleLayers([data[i].FBT]);
+            Ellipses[i] = new FeatureLayer(GetLayerUrl("Ellipse") + data[i].Ellipse, {
+                opacity: 0,
+            });
         }
     }
 
     //加载所有的疾病数据图层
     map.on("load", function () {
         AddAllFeatureLayers();
-        AddFBDynamicLayer();
+        AddDynamicLayer();
+
     });
 
 
