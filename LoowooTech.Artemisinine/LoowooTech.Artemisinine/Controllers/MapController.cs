@@ -54,7 +54,13 @@ namespace LoowooTech.Artemisinine.Controllers
         public string JavaScriptContext(string JGID)
         {
             var list = GISManager.GetValues(JGID);
-            return ChartHelper.GetJavaScriptContext(list, Server.MapPath("~/Maps/Chart.js"));
+            return ChartHelper.GetJavaScriptContent(list, Server.MapPath("~/Maps/Chart.js"));
+        }
+
+        public ActionResult ChartLine(string XZC,Sick sick)
+        {
+            var dict = GISManager.GetTrend(XZC, sick);
+            return View();
         }
 
         public ActionResult Trend()

@@ -56,7 +56,6 @@ namespace LoowooTech.Artemisinine.Common
             CityName = System.Configuration.ConfigurationManager.AppSettings["QNAME"];
             SDEWorkspace = OpenSde();
         }
-
         private static void InitSDE()
         {
             if (SDEWorkspace == null)
@@ -142,7 +141,6 @@ namespace LoowooTech.Artemisinine.Common
 
 
         }
-        
         private static List<NField> GetInitFields()
         {
             if (configXml == null)
@@ -283,6 +281,7 @@ namespace LoowooTech.Artemisinine.Common
             queryFilter.WhereClause = Filter;
             IFeatureCursor featureCursor = featureClass.Search(queryFilter, true);
             IFeature feature = featureCursor.NextFeature();
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(featureCursor);
             return feature;
         }
         /// <summary>
@@ -544,7 +543,6 @@ namespace LoowooTech.Artemisinine.Common
             }
             
         }
-
         //保存到一个要素类中
         public static void OperateSum(Dictionary<DateTime, List<Disease>> Dict, string Thing)
         {
@@ -578,7 +576,7 @@ namespace LoowooTech.Artemisinine.Common
         /// </summary>
         /// <param name="workspace"></param>
         /// <returns></returns>
-        private static List<string> GetFeatureClassNames(IWorkspace workspace)
+        private static List<string> GetFeatureClassNames(IWorkspace workspace,string key="")
         {
             var list = new List<string>();
             IFeatureWorkspace featureWorkspace = workspace as IFeatureWorkspace;
@@ -589,12 +587,15 @@ namespace LoowooTech.Artemisinine.Common
             {
                 if (datasetName.Type == esriDatasetType.esriDTFeatureClass)
                 {
-                    list.Add(datasetName.Name);
+                    if (datasetName.Name.Contains(key))
+                    {
+                        list.Add(datasetName.Name);
+                    }
                 }
                 datasetName = enumDatasetName.Next();
             }
             return list;
-        }
+        }   
         /// <summary>
         /// 查询医疗机构的所有疾病数据
         /// </summary>
@@ -643,7 +644,6 @@ namespace LoowooTech.Artemisinine.Common
             }
             return null;
         }
-
         public static List<string> GetList(IFeatureClass featureClass,int Index,string Filter=null)
         {
             var list = new List<string>();
@@ -662,6 +662,124 @@ namespace LoowooTech.Artemisinine.Common
             }
             System.Runtime.InteropServices.Marshal.ReleaseComObject(featureCursor);
             return list;
+        }
+        private static double Statistics(IFeatureClass featureClass, string FieldName,string Filter)
+        {
+            IQueryFilter queryFilter = new QueryFilterClass();
+            queryFilter.WhereClause = Filter;
+            IFeatureCursor featureCursor = featureClass.Search(queryFilter, false);
+            ICursor cursor = featureCursor as ICursor;
+            double value = 0.0;
+            if (cursor != null)
+            {
+                IDataStatistics datastatistics = new DataStatisticsClass();
+                datastatistics.Cursor = cursor;
+                datastatistics.Field = FieldName;
+                IStatisticsResults statisticResult = datastatistics.Statistics;
+                value= statisticResult.Sum;
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(featureCursor);
+            return value;
+
+        }
+        /// <summary>
+        /// 行政区某种疾病的发病趋势图
+        /// </summary>
+        /// <param name="XZC">行政区名</param>
+        /// <param name="sicktype">疾病类型</param>
+        /// <returns>时间点 疾病值</returns>
+        public static Dictionary<DateTime, double> GetTrend(string XZC, Sick sicktype)
+        {
+            var dict = new Dictionary<DateTime, double>();
+            if (SDEWorkspace != null)
+            {
+                var list = GetFeatureClassNames(SDEWorkspace, sicktype.ToString() + sicktype.GetDescription() + SicknessName);
+                foreach (var item in list)
+                {
+                    var entry = item.Split('.');
+                    if (entry.Count() != 3)
+                    {
+                        continue;
+                    }
+                    var time = ExcelHelper.GetDateTime(entry[2].Replace(sicktype.ToString()+sicktype.GetDescription()+SicknessName,""));
+                    if (!dict.ContainsKey(time))
+                    { 
+                        var featureClass = GetFeatureClass(SDEWorkspace, item);
+                        if (featureClass == null)
+                        {
+                            continue;
+                        }
+                        dict.Add(time, Statistics(featureClass, "Data", "XZC='" + XZC+"'"));
+                    }
+                }
+            }
+            return dict;
+        }
+
+        private static Dictionary<DateTime, double> GetComparisonBase(DateTime startTime, TimeSpan span, string XZC, Sick sicktype)
+        {
+            var dict = new Dictionary<DateTime, double>();
+            for (var i = 0; i < span.Days; i++)
+            {
+                var time=startTime.AddDays(i);
+                var featureClassName = string.Format("{0}{1}{2}{3}", sicktype.ToString() + sicktype.GetDescription() + SicknessName, time.Year.ToString("0000"), time.Month.ToString("00"), time.Day.ToString("00"));
+                var featureClass = GetFeatureClass(SDEWorkspace, featureClassName);
+                if (!dict.ContainsKey(time))
+                {
+                    dict.Add(time, Statistics(featureClass, "Data", "XZC='" + XZC + "'"));
+                }
+            }
+            return dict;
+        }
+
+
+        /// <summary>
+        /// 某个时间段之内某种疾病各区域对比图
+        /// </summary>
+        /// <param name="StartTime">开始时间</param>
+        /// <param name="EndTime">结束时间</param>
+        /// <param name="sicktype">疾病类型</param>
+        /// <returns>行政区对应的每个时间点的发病值</returns>
+        public static Dictionary<string, Dictionary<DateTime,double>> GetComparison(DateTime StartTime,DateTime EndTime, Sick sicktype)
+        {
+            var dict=new Dictionary<string, Dictionary<DateTime,double>>();
+            var span = EndTime - StartTime;
+            var xzc = GetXZC();
+            if (xzc != null)
+            {
+                foreach (var item in xzc)
+                {
+                    if (!dict.ContainsKey(item))
+                    {
+                        dict.Add(item, GetComparisonBase(StartTime, span, item, sicktype));
+                    }
+                }
+            }
+            return dict;
+        }
+        /// <summary>
+        /// 某个时间某个区域多种疾病发病对比图
+        /// </summary>
+        /// <param name="Time">时间</param>
+        /// <param name="XZC">区域</param>
+        /// <returns>每个疾病对应的疾病值</returns>
+
+        public static Dictionary<string,double> GetComparison(DateTime Time, string XZC)
+        {
+            var dict = new Dictionary<string, double>();
+            foreach (Sick sicktype in Enum.GetValues(typeof(Sick)))
+            {
+                if (!dict.ContainsKey(sicktype.GetDescription()))
+                {
+                    var featureClassName = string.Format("{0}{1}{2}{3}", sicktype.ToString() + sicktype.GetDescription() + SicknessName, Time.Year.ToString("0000"), Time.Month.ToString("00"), Time.Day.ToString("00"));
+                    var featureClass = GetFeatureClass(SDEWorkspace, featureClassName);
+                    if (featureClass != null)
+                    {
+                        dict.Add(sicktype.GetDescription(), Statistics(featureClass, "Data", "XZC='" + XZC + "'"));
+                    }
+                }
+            }
+            return dict;
         }
         
     }

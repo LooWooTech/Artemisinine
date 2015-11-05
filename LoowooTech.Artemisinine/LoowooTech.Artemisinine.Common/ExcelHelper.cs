@@ -18,7 +18,7 @@ namespace LoowooTech.Artemisinine.Common
             }
         }
 
-        private static DateTime GetDateTime(string str, string Year)
+        public static DateTime GetDateTime(string str, string Year=null)
         {
             var value = 0;
             int.TryParse(str, out value);
