@@ -158,7 +158,8 @@
   <ItemGroup>
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootswatch.min.css" />
-    <Content Include="Content\main.min.css" />
+    <Content Include="Content\jquery.shCircleLoader.css" />
+    <Content Include="Content\main.css" />
     <Content Include="Fields.xml" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
@@ -176,6 +177,7 @@
     <Content Include="Scripts\jquery-1.9.1.js" />
     <Content Include="Scripts\jquery-1.9.1.min.js" />
     <Content Include="Scripts\jquery-2.1.4.min.js" />
+    <Content Include="Scripts\jquery.shCircleLoader-min.js" />
     <Content Include="Scripts\map.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
@@ -228,9 +230,6 @@
     <Content Include="fonts\glyphicons-halflings-regular.ttf" />
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
     <Content Include="fonts\glyphicons-halflings-regular.woff2" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Views\Admin\_Layout.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Views\Admin\Index.cshtml" />

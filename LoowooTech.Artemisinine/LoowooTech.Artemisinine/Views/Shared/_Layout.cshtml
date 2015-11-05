@@ -1,4 +1,9 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var authenticated = System.Threading.Thread.CurrentPrincipal.Identity.IsAuthenticated;
+    var userName = System.Threading.Thread.CurrentPrincipal.Identity.Name;
+    string action = ViewBag.Action;
+}
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -6,71 +11,45 @@
     <title>@ViewBag.Title</title>
     <link rel="stylesheet" type="text/css" href="~/Content/bootstrap.css" />
     <link rel="stylesheet" type="text/css" href="~/Content/bootswatch.min.css" />
-    <link rel="stylesheet" type="text/css" href="~/Content/main.min.css" />
-    <script type="text/javascript" src="~/Scripts/jquery-2.1.4.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="~/Content/main.css" />
+    <script type="text/javascript" src="~/Scripts/jquery-1.9.1.min.js"></script>
     <script type="text/javascript" src="~/Scripts/bootstrap.min.js"></script>
-    <style>
-        body{
-            padding-top:10px;
-        }
-    </style>
-    @{
-        string name = System.Threading.Thread.CurrentPrincipal.Identity.Name;
-    }
+    @RenderSection("static", false)
 </head>
 <body>
-    <div class="container">
-        <div class="navbar  navbar-inverse ">
-            <div class="container-fluid">
-                <div class="navbar-header">
-                    <span class="sr-only">Toggle navigation</span>
-                    <a class="navbar-brand" href="/">疾病大数据</a>
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                </div>
-                <div class="navbar-collapse collapse" id="navbar-main">
+    <div class="navbar navbar-default" id="header">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/">疾病大数据</a>
+            </div>
+            <div class="navbar-collapse collapse" id="navbar-main">
+                @if (authenticated)
+                {
                     <ul class="nav navbar-nav">
+                        <li class="@(action=="Index"?"active":null)"><a href="/Admin/Index"><i class="glyphicon glyphicon-home"></i>&nbsp;首页</a></li>
+                        <li class=""><a href="/Map/Index"><i class="glyphicon glyphicon-map-marker"></i>疾病</a></li>
+                        <li class=""><a href="/Map/Dynamic">动态</a></li>
                         @RenderSection("nav", false)
+                        <li class="@(action=="Upload"?"active":null)"><a href="/Admin/Upload"><i class="glyphicon glyphicon-cloud-upload"></i>&nbsp;上传疾病数据</a></li>
+                        <li class="@(action=="Users"?"active":null)"><a href="/Admin/Users"><i class="glyphicon glyphicon-user"></i>&nbsp;用户管理</a></li>
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
-                         @if (!string.IsNullOrEmpty(name))
-                         {
-                             <li class="dropdown">
-                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="glyphicon glyphicon-cloud"></i>&nbsp;账户<span class="caret"></span></a>
-                                 <ul class="dropdown-menu">
-                                     <li><a href=""><i class="glyphicon glyphicon-cog"></i>&nbsp;密码修改</a></li>
-                                     <li><a href=""><i class="glyphicon glyphicon-user"></i>&nbsp;@(name)</a></li>
-                                 </ul>
-                             </li>
-                         }
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="glyphicon glyphicon-cloud"></i>&nbsp;账户<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/admin/editpassword"><i class="glyphicon glyphicon-cog"></i>&nbsp;密码修改</a></li>
+                                <li><a href="/home/logout"><i class="glyphicon glyphicon-user"></i>&nbsp;@(userName) 退出</a></li>
+                            </ul>
+                        </li>
                     </ul>
-                </div>
+                }
             </div>
         </div>
     </div>
-    
+    @RenderBody()
 
-    <div class="container">
-        <div class="panel panel-default" id="main-panel">
-            <div class="panel-heading">
-                <h3 class="panel-title">@(ViewBag.Title)</h3>
-            </div>
-            <div class="panel-body">
-                @RenderBody()
-            </div>
-        </div>
-        <footer style="clear:both;overflow:hidden">
-            <div class="row">
-                <div class="col-lg-12">
-                    &copy;2015 版权所有
-                </div>
-            </div>
-        </footer>
-    </div>
-    
-
+    <footer id="footer">
+        &copy;2015 版权所有
+    </footer>
 </body>
 </html>

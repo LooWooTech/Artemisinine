@@ -50,5 +50,10 @@ namespace LoowooTech.Artemisinine.Controllers
             return RedirectToAction("Index");
         }
 
+        public ActionResult Logout()
+        {
+            HttpContext.ClearAuth();
+            return RedirectToAction("Login");
+        }
     }
 }
