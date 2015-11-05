@@ -451,10 +451,21 @@ require([
     map.on("load", function () {
         AddAllFeatureLayers();
         AddDynamicLayer();
-
+        //text();
     });
 
+    var text = function () {
+        //for (var item in Info) {
+        //    for (var disease in Info[item]) {
+        //        console.log("id:" + Info[item][disease].id + "Ellipse:" + Info[item][disease].Ellipse);
+        //    }
+        //}
+        for (var type in Info2) {
+            for (var sick in Info2[type]) {
 
+            }
+        }
+    }
 
 
     //搜索
