@@ -36,6 +36,10 @@ var data2 = [
      { id: 7, Time: new Date("10/09/2015"), hid: 26 }, { id: 6, Time: new Date("10/10/2015"), hid: 27 },
 ]
 var dates = new Array();
+var AllLayers = new Array();//所有时间段各种疾病的疾病数据图层
+var AllHeatLayers = new Array();//所有时间段各种疾病的热度图数据图层
+var AllEllipseLayers = new Array();//所有时间段各种疾病的椭圆图数据
+var AllFBLayers = new Array();//所有时间段各种疾病的发病图数据
 var indexs = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 27, 28, 29, 30, 31, 32, 33, 34, 35];
 var layers = new Array();//每个时间段的疾病数据图层
 var heatlayers = new Array();//每个时间段的热度图图层
@@ -45,13 +49,14 @@ var layer;
 var visible = [];
 var line;//当前一个图层序号
 var current;//即将切换到的图层序号
+var Serial=0;//当前查看疾病序号（指向哪种疾病）
 var Type = "Place";//记录当前图层类型
 require([
        "esri/map", "esri/layers/ArcGISDynamicMapServiceLayer", "esri/layers/ImageParameters", "esri/layers/RasterLayer",
        "esri/layers/ArcGISTiledMapServiceLayer", "esri/renderers/HeatmapRenderer",
        "esri/dijit/TimeSlider", "esri/TimeExtent", "dojo/_base/array", "dojo/dom", "dojo/_base/connect",
        "esri/layers/FeatureLayer", "esri/InfoTemplate", "esri/dijit/Search",
-       "esri/renderers/ClassBreaksRenderer", "esri/Color", "esri/renderers/BlendRenderer", "esri/renderers/SimpleRenderer", "esri/symbols/SimpleFillSymbol", "esri/symbols/SimpleLineSymbol", "esri/symbols/SimpleMarkerSymbol",
+       "esri/renderers/ClassBreaksRenderer", "esri/Color","esri/renderers/UniqueValueRenderer", "esri/renderers/BlendRenderer", "esri/renderers/SimpleRenderer", "esri/symbols/SimpleFillSymbol", "esri/symbols/SimpleLineSymbol", "esri/symbols/SimpleMarkerSymbol",
        "esri/dijit/HomeButton",
        "esri/tasks/RelationshipQuery","esri/domUtils","dojo/parser",
        "dojo/domReady!"
@@ -60,7 +65,7 @@ require([
        Tiled, HeatmapRenderer,
        TimeSlider, TimeExtent, arrayUtils, dom, connect,
        FeatureLayer, InfoTemplate, Search,
-       ClassBreaksRenderer, Color, BlendRenderer, SimpleRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol,
+       ClassBreaksRenderer, Color,UniqueValueRenderer, BlendRenderer, SimpleRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol,
        HomeButton,
        RelationshipQuery,domUtils,parser
        ) {
@@ -159,7 +164,7 @@ require([
 
     //医疗点数据
     var HLayer = new FeatureLayer(host + "/arcgis/rest/services/Data/MapServer/0", {
-        mode: FeatureLayer.MODE_ONDEMAND,
+        mode: FeatureLayer.MODE_SNAPSHOT,
         opacity: 1,
         outFields: ["*"],
         infoTemplate: new InfoTemplate("医疗机构", "医疗机构：${NAME}<br/>机构ID：${JGID}<br/>ZZJGDM:${ZZJGDM}<br/>XZDM:${XZDM}" )
@@ -177,7 +182,7 @@ require([
     //医疗机构图例
     var Hrenderer = new SimpleRenderer(new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 5, new SimpleLineSymbol(SimpleFillSymbol.STYLE_SOLID, new Color([255, 255, 255]), 1), new Color([255, 255, 255])));
 
-    HLayer.setRenderer(Hrenderer);
+   // HLayer.setRenderer(Hrenderer);
     map.addLayer(HLayer);
 
     //疾病数据图例
@@ -200,7 +205,10 @@ require([
         valueUnit: "unknown"
     });
     //椭圆图图例
-   // var ellipseRenderer = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT, new Color([255, 0, 0]), 2), new Color([255, 255, 0, 0.25]));
+
+    var ellipsesymbol = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT, new Color([0, 0, 0,0]), 2), new Color([128, 255, 128, 0.25]));
+   
+    var ellipseRenderer = new UniqueValueRenderer(ellipsesymbol);
 
     var maptype = dojo.byId("MapType");
     dojo.connect(maptype, "onchange", function SelectChange() {
@@ -396,7 +404,6 @@ require([
             if (line != undefined && line !== current) {
                 Ellipses[line].setOpacity(1 - opacity);
                 if (Number(1 - opacity) === 0) {
-                    //Ellipses[line].setVisibility(false);
                     map.removeLayer(Ellipses[line]);
                 }
             }
@@ -410,6 +417,7 @@ require([
 
 
     function AddAllFeatureLayers() {
+        /*
         for (var i = 0; i < data.length; i++) {
             console.log(GetLayerUrl("Data") + data[i].id);
             layers[i] = new FeatureLayer(GetLayerUrl("Data") + data[i].id, {
@@ -431,10 +439,38 @@ require([
             heatlayers[i].setRenderer(heatmapRenderer);
         }
         map.addLayers(layers);
-        map.addLayers(heatlayers);
+        map.addLayers(heatlayers);*/
+
+        for (var i = 0; i < Info2.length; i++) {
+            var templayers = new Array();
+            var tempheat = new Array();
+            for (var j = 0; j < Info2[i].length; j++) {
+                templayers[j] = new FeatureLayer(GetLayerUrl("Data") + Info2[i][j].id, {
+                    mode: FeatureLayer.MODE_ONDEMAND,
+                    opacity: 0,
+                    visible: false,
+                    outFields: ["*"],
+                    infoTemplate: new InfoTemplate("疾病数据", "医疗机构ID：${JGID}<br/>名称：${NAME}<br/>疾病数据：${Data}<br/>时间：${Time}")
+                });
+                tempheat[j] = new FeatureLayer(GetLayerUrl("Data") + Info2[i][j].id, {
+                    mode: FeatureLayer.MODE_SNAPSHOT,
+                    opacity: 0,
+                    visible: false,
+                    outFields: ["*"],
+                    InfoTemplate: new InfoTemplate("疾病数据", "医疗机构：${JGID}<br/>名称：${NAME}<br/>疾病数据：${Data}<br/>时间：${Time}")
+                });
+                templayers[j].setRenderer(renderer);
+                tempheat[j].setRenderer(heatmapRenderer);
+            }
+            AllLayers[i] = templayers;
+            AllHeatLayers[i] = tempheat;
+            map.addLayers(AllLayers[i]);
+            map.addLayers(AllHeatLayers[i]);
+        }
     }
 
     function AddDynamicLayer() {
+        /*
         for (var i = 0; i < data.length; i++) {
             FBLayers[i] = new ArcGISDynamicMapServiceLayer(GetLayerUrl("FBT"), {
                 opacity: 0,
@@ -444,7 +480,8 @@ require([
             Ellipses[i] = new FeatureLayer(GetLayerUrl("Ellipse") + data[i].Ellipse, {
                 opacity: 0,
             });
-        }
+            Ellipses[i].setRenderer(ellipseRenderer);
+        }*/
     }
 
     //加载所有的疾病数据图层
@@ -454,18 +491,6 @@ require([
         //text();
     });
 
-    var text = function () {
-        //for (var item in Info) {
-        //    for (var disease in Info[item]) {
-        //        console.log("id:" + Info[item][disease].id + "Ellipse:" + Info[item][disease].Ellipse);
-        //    }
-        //}
-        for (var type in Info2) {
-            for (var sick in Info2[type]) {
-
-            }
-        }
-    }
 
 
     //搜索
