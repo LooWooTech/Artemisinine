@@ -52,6 +52,7 @@
     <Compile Include="ChartMode.cs" />
     <Compile Include="Disease.cs" />
     <Compile Include="FileFilter.cs" />
+    <Compile Include="Map.cs" />
     <Compile Include="MapType.cs" />
     <Compile Include="NField.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

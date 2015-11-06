@@ -634,6 +634,10 @@ namespace LoowooTech.Artemisinine.Common
             }
             return list;
         }
+        /// <summary>
+        /// 获取行政区
+        /// </summary>
+        /// <returns></returns>
         public static List<string> GetXZC()
         {
             if (SDEWorkspace != null)
