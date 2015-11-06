@@ -47,7 +47,7 @@
         <select class="form-control" id="SickType">
             @foreach (Sick sicktype in Enum.GetValues(typeof(Sick)))
             {
-                <option value="@(sicktype.ToString())">@(sicktype.GetDescription())</option>
+                <option value="@(sicktype.ToString())">@(sicktype.ToString())@(sicktype.GetDescription())</option>
             }
         </select>
     </div>
@@ -94,6 +94,8 @@
     <div id="timeInfo">
         <div>当前日期为：<span id="modern"></span></div>
         <div id="timeSliderDiv"></div>
+        <div id="timeSliderDivAA"></div>
+        <div id="timeSliderDivRabies"></div>
     </div>
 </div>
 <script>

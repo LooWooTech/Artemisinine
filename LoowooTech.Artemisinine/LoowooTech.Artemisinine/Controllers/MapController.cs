@@ -80,5 +80,11 @@ namespace LoowooTech.Artemisinine.Controllers
             return Content(list.ToTableHtml());  
         }
 
+        public ActionResult GetData(Sick sickType)
+        {
+            var list = MapInfoManager.GetMapInfo(sickType.ToString());
+            return Content(list.ToJson());
+        }
+
     }
 }

@@ -1,5 +1,61 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Maps>
+  <Disease>
+    <Sick Name="Rabies">
+      <Service Year="2014" Month="09" Day="09" FID="35" Heat="35" Ellipse="34" FB="1"></Service>
+      <Service Year="2014" Month="09" Day="10" FID="34" Heat="34" Ellipse="33" FB="2"></Service>
+      <Service Year="2014" Month="09" Day="11" FID="33" Heat="33" Ellipse="32" FB="3"></Service>
+      <Service Year="2014" Month="09" Day="12" FID="32" Heat="32" Ellipse="31" FB="4"></Service>
+      <Service Year="2014" Month="10" Day="01" FID="31" Heat="31" Ellipse="30" FB="5"></Service>
+      <Service Year="2014" Month="10" Day="02" FID="30" Heat="30" Ellipse="29" FB="6"></Service>
+      <Service Year="2014" Month="10" Day="03" FID="29" Heat="29" Ellipse="28" FB="7"></Service>
+      <Service Year="2014" Month="10" Day="04" FID="28" Heat="28" Ellipse="27" FB="8"></Service>
+      <Service Year="2014" Month="10" Day="05" FID="27" Heat="27" Ellipse="26" FB="9"></Service>
+      <Service Year="2015" Month="09" Day="01" FID="17" Heat="17" Ellipse="16" FB="11"></Service>
+      <Service Year="2015" Month="09" Day="02" FID="16" Heat="16" Ellipse="15" FB="12"></Service>
+      <Service Year="2015" Month="09" Day="03" FID="15" Heat="15" Ellipse="14" FB="13"></Service>
+      <Service Year="2015" Month="09" Day="04" FID="14" Heat="14" Ellipse="13" FB="14"></Service>
+      <Service Year="2015" Month="09" Day="05" FID="13" Heat="13" Ellipse="12" FB="15"></Service>
+      <Service Year="2015" Month="09" Day="06" FID="12" Heat="12" Ellipse="11" FB="16"></Service>
+      <Service Year="2015" Month="09" Day="07" FID="11" Heat="11" Ellipse="10" FB="17"></Service>
+      <Service Year="2015" Month="09" Day="08" FID="18" Heat="18" Ellipse="17" FB="18"></Service>
+      <Service Year="2015" Month="09" Day="09" FID="10" Heat="10" Ellipse="9" FB="19"></Service>
+      <Service Year="2015" Month="09" Day="10" FID="9" Heat="9" Ellipse="8" FB="20"></Service>
+      <Service Year="2015" Month="09" Day="11" FID="8" Heat="8" Ellipse="7" FB="21"></Service>
+      <Service Year="2015" Month="09" Day="12" FID="7" Heat="7" Ellipse="6" FB="22"></Service>
+      <Service Year="2015" Month="10" Day="01" FID="6" Heat="6" Ellipse="5" FB="23"></Service>
+      <Service Year="2015" Month="10" Day="02" FID="5" Heat="5" Ellipse="4" FB="24"></Service>
+      <Service Year="2015" Month="10" Day="03" FID="4" Heat="4" Ellipse="3" FB="25"></Service>
+      <Service Year="2015" Month="10" Day="04" FID="3" Heat="3" Ellipse="2" FB="26"></Service>
+      <Service Year="2015" Month="10" Day="05" FID="2" Heat="2" Ellipse="1" FB="27"></Service>
+      <Service Year="2015" Month="10" Day="06" FID="25" Heat="25" Ellipse="24" FB="28"></Service>
+      <Service Year="2015" Month="10" Day="07" FID="24" Heat="24" Ellipse="23" FB="29"></Service>
+      <Service Year="2015" Month="10" Day="08" FID="23" Heat="23" Ellipse="22" FB="30"></Service>
+      <Service Year="2015" Month="10" Day="09" FID="22" Heat="22" Ellipse="21" FB="31"></Service>
+      <Service Year="2015" Month="10" Day="10" FID="21" Heat="21" Ellipse="20" FB="32"></Service>
+      <Service Year="2015" Month="10" Day="11" FID="20" Heat="20" Ellipse="19" FB="33"></Service>
+      <Service Year="2015" Month="10" Day="12" FID="19" Heat="19" Ellipse="18" FB="34"></Service>
+    </Sick>
+    <Sick Name="AA">
+      <Service Year="2014" Month="09" Day="01" FID="2" Heat="2" Ellipse="1" FB="27"></Service>
+      <Service Year="2014" Month="09" Day="02" FID="3" Heat="3" Ellipse="2" FB="26"></Service>
+      <Service Year="2014" Month="09" Day="03" FID="4 " Heat="4" Ellipse="3" FB="25"></Service>
+      <Service Year="2014" Month="10" Day="01" FID="5" Heat="5" Ellipse="4" FB="24"></Service>
+      <Service Year="2014" Month="10" Day="02" FID="6" Heat="6" Ellipse="5" FB="23"></Service>
+      <Service Year="2014" Month="10" Day="03" FID="7" Heat="7" Ellipse="6" FB="22"></Service>
+      <Service Year="2014" Month="10" Day="04" FID="8" Heat="8" Ellipse="7" FB="21"></Service>
+      <Service Year="2014" Month="10" Day="05" FID="9" Heat="9" Ellipse="8" FB="20"></Service>
+      <Service Year="2015" Month="09" Day="03" FID="10" Heat="10" Ellipse="9" FB="19"></Service>
+      <Service Year="2015" Month="09" Day="04" FID="11" Heat="11" Ellipse="10" FB="17"></Service>
+      <Service Year="2015" Month="09" Day="05" FID="12" Heat="12" Ellipse="11" FB="16"></Service>
+      <Service Year="2015" Month="09" Day="06" FID="13" Heat="13" Ellipse="12" FB="15"></Service>
+      <Service Year="2015" Month="09" Day="07" FID="14" Heat="14" Ellipse="13" FB="14"></Service>
+      <Service Year="2015" Month="10" Day="08" FID="15" Heat="15" Ellipse="14" FB="13"></Service>
+      <Service Year="2015" Month="10" Day="09" FID="16" Heat="16" Ellipse="15" FB="12"></Service>
+      <Service Year="2015" Month="10" Day="10" FID="17" Heat="17" Ellipse="16" FB="11"></Service>
+      <Service Year="2015" Month="10" Day="11" FID="18" Heat="18" Ellipse="17" FB="18"></Service>
+    </Sick>
+  </Disease>
   <Map Name="Data">
     <Layer Year="2015" Month="10" Day="05" value="2"></Layer>
     <Layer Year="2015" Month="10" Day="04" value="3"></Layer>
@@ -36,3 +92,4 @@
     <Layer Year="2014" Month="09" Day="09" value="35"></Layer>
   </Map>
 </Maps>
+
