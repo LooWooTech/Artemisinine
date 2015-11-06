@@ -21,25 +21,12 @@ var data = [
     { id: 21, Time: new Date("10/10/2015"), hid: 22, FBT: 32,Ellipse:20 }, { id: 20, Time: new Date("10/11/2015"), hid: 23, FBT: 33,Ellipse:19 },
     { id: 19, Time: new Date("10/12/2015"), hid: 24, FBT: 34,Ellipse:18 }
 ]
-
-var data2 = [
-    { id: 20, Time: new Date("09/09/2014"), hid: 26 }, { id: 19, Time: new Date("09/10/2014"), hid: 27 },
-    { id: 18, Time: new Date("09/11/2014"), hid: 26 }, { id: 17, Time: new Date("09/12/2014"), hid: 27 },
-    { id: 16, Time: new Date("10/01/2014"), hid: 26 }, { id: 15, Time: new Date("10/02/2014"), hid: 27 },
-    { id: 14, Time: new Date("10/03/2014"), hid: 26 }, { id: 13, Time: new Date("10/04/2014"), hid: 27 },
-    { id: 12, Time: new Date("10/05/2014"), hid: 26 },
-
-     { id: 4, Time: new Date("09/03/2015"), hid: 26 }, { id: 5, Time: new Date("09/08/2015"), hid: 27 },
-     { id: 3, Time: new Date("09/09/2015"), hid: 26 }, { id: 2, Time: new Date("10/03/2015"), hid: 27 },
-     { id: 1, Time: new Date("10/05/2015"), hid: 26 }, { id: 10, Time: new Date("10/06/2015"), hid: 27 },
-     { id: 9, Time: new Date("10/07/2015"), hid: 26 }, { id: 8, Time: new Date("10/08/2015"), hid: 27 },
-     { id: 7, Time: new Date("10/09/2015"), hid: 26 }, { id: 6, Time: new Date("10/10/2015"), hid: 27 },
-]
 var dates = new Array();
 var AllLayers = new Array();//所有时间段各种疾病的疾病数据图层
 var AllHeatLayers = new Array();//所有时间段各种疾病的热度图数据图层
 var AllEllipseLayers = new Array();//所有时间段各种疾病的椭圆图数据
 var AllFBLayers = new Array();//所有时间段各种疾病的发病图数据
+
 var indexs = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 27, 28, 29, 30, 31, 32, 33, 34, 35];
 var layers = new Array();//每个时间段的疾病数据图层
 var heatlayers = new Array();//每个时间段的热度图图层
@@ -291,7 +278,7 @@ require([
                 break;
             }
         }
-        console.log("Line:" + line + "  Current:" + current);
+        console.log("Line:" + line + "  Current:" + current+"Serial:"+Serial);
 
         if (current == undefined) {
             return;
@@ -303,6 +290,9 @@ require([
                 HLayer.setVisibility(true);
                 return;
             case "Situation"://疾病数据
+                //AllLayers[0][0].setVisibility(true);
+                //AllLayers[0][0].setOpacity(1);
+                //AllLayers[Serial][current].setVisibility(true);
                 layers[current].setVisibility(true);
                 console.log("医疗疾病数据从图层编号：" + line + "切换到图层编号：" + current);
                 ShowerSituation();
@@ -342,7 +332,7 @@ require([
 
     //疾病数据渐变
     var ShowerSituation = function () {
-
+        
         var opacity = layers[current].opacity;
         if (opacity < 1) {
             opacity += 0.05;
@@ -357,7 +347,19 @@ require([
 
             setTimeout(ShowerSituation, 50);
         }
-        flag = false;
+        /*
+        var opacity = AllLayers[Serial][current].opacity;
+        if (opacity < 1) {
+            opacity += 0.05;
+            AllLayers[Serial][current].setOpacity(opacity);
+            if (line != undefined && line !== current) {
+                AllLayers[Serial][line].setOpacity(1 - opacity);
+                if (Number(1 - opacity) === 0) {
+                    AllLayers[Serial][line].setVisibility(false);
+                }
+            }
+            setTimeout(ShowerSituation, 20);
+        }*/
     }
 
     //热度图数据渐变
@@ -417,7 +419,7 @@ require([
 
 
     function AddAllFeatureLayers() {
-        /*
+        
         for (var i = 0; i < data.length; i++) {
             console.log(GetLayerUrl("Data") + data[i].id);
             layers[i] = new FeatureLayer(GetLayerUrl("Data") + data[i].id, {
@@ -439,11 +441,14 @@ require([
             heatlayers[i].setRenderer(heatmapRenderer);
         }
         map.addLayers(layers);
-        map.addLayers(heatlayers);*/
+        map.addLayers(heatlayers);
 
+        /*
         for (var i = 0; i < Info2.length; i++) {
-            var templayers = new Array();
-            var tempheat = new Array();
+            var templayers = new Array();//医疗疾病
+            var tempheat = new Array();//热力图
+            var tempEllipse = new Array();//椭圆图
+            var tempFB = new Array();//发病
             for (var j = 0; j < Info2[i].length; j++) {
                 templayers[j] = new FeatureLayer(GetLayerUrl("Data") + Info2[i][j].id, {
                     mode: FeatureLayer.MODE_ONDEMAND,
@@ -452,6 +457,7 @@ require([
                     outFields: ["*"],
                     infoTemplate: new InfoTemplate("疾病数据", "医疗机构ID：${JGID}<br/>名称：${NAME}<br/>疾病数据：${Data}<br/>时间：${Time}")
                 });
+                templayers[j].setRenderer(renderer);
                 tempheat[j] = new FeatureLayer(GetLayerUrl("Data") + Info2[i][j].id, {
                     mode: FeatureLayer.MODE_SNAPSHOT,
                     opacity: 0,
@@ -459,18 +465,29 @@ require([
                     outFields: ["*"],
                     InfoTemplate: new InfoTemplate("疾病数据", "医疗机构：${JGID}<br/>名称：${NAME}<br/>疾病数据：${Data}<br/>时间：${Time}")
                 });
-                templayers[j].setRenderer(renderer);
                 tempheat[j].setRenderer(heatmapRenderer);
+                tempEllipse[j] = new FeatureLayer(GetLayerUrl("Ellipse") + Info[i][j].Ellipse, {
+                    opacity: 0
+                });
+                tempEllipse[j].setRenderer(ellipseRenderer);
+                tempFB[j] = new ArcGISDynamicMapServiceLayer(GetLayerUrl("FBT"), {
+                    opacity: 0,
+                    visible: false
+                });
+                tempFB[j].setVisibleLayers([Info2[i][j].FBT]);
             }
             AllLayers[i] = templayers;
             AllHeatLayers[i] = tempheat;
+            AllEllipseLayers[i] = tempEllipse;
+            AllFBLayers[i] = tempFB;
             map.addLayers(AllLayers[i]);
             map.addLayers(AllHeatLayers[i]);
-        }
+
+        }*/
     }
 
     function AddDynamicLayer() {
-        /*
+        
         for (var i = 0; i < data.length; i++) {
             FBLayers[i] = new ArcGISDynamicMapServiceLayer(GetLayerUrl("FBT"), {
                 opacity: 0,
@@ -481,7 +498,8 @@ require([
                 opacity: 0,
             });
             Ellipses[i].setRenderer(ellipseRenderer);
-        }*/
+        }
+        
     }
 
     //加载所有的疾病数据图层
