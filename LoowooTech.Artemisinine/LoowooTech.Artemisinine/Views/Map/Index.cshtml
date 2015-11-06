@@ -3,42 +3,39 @@
     Layout = "~/Views/Map/_Layout.cshtml";
 }
 <style>
-    html, body, #map {
-        height: 100%;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-    }
+    #search { position: absolute; z-index: 2; top: 65px; left: 20px; }
+    #map_zoom_slider { top:90px;}
+    #timeInfo { 
+                display: block; 
+                padding: 5px; 
+                position: absolute;
+                 text-align: center; 
+                 width: 1000px; 
+                 z-index: 99; 
+                 left:150px;
+                 top:70px;
 
-    #search {
-        display: block;
-        position: absolute;
-        z-index: 2;
-        top: 65px;
-        left: 20px;
-    }
-
-    #bottomPanel {
-        left: 50%;
-        margin: 0 auto;
-        margin-left: -500px;
-        position: absolute;
-        bottom: 2.5em;
-    }
-
-    #timeInfo {
-        border-radius: 4px;
-        border: solid 2px #ccc;
-        background-color: #fff;
-        display: block;
-        padding: 5px;
-        position: relative;
-        text-align: center;
-        width: 1000px;
-        z-index: 99;
     }
 </style>
+<div id="search"></div>
+<div id="timeInfo">
+    <div id="timeSliderDiv"></div>
+</div>
+<div id="map" style="background:#000;">
+</div>
+
 <script>
+    var headerHeight = $("#header").height();
+    var footerHeight = $("#footer").height();
+    var clientHeight = document.documentElement.clientHeight;
+    var mapHeight = clientHeight - headerHeight - footerHeight - 10;
+    console.log(headerHeight);
+    console.log(footerHeight);
+    console.log(clientHeight);
+    console.log(mapHeight);
+    $("#map").height(mapHeight);
+
+
     var host = "http://" + arcgisServer + ":6080";
     require([
         "esri/map", "esri/layers/FeatureLayer", "esri/dijit/Search", "esri/InfoTemplate",
@@ -120,11 +117,4 @@
         }
     })
 </script>
-<div id="search"></div>
-<div id="map">
-    <div id="bottomPanel">
-        <div id="timeInfo">
-            <div id="timeSliderDiv"></div>
-        </div>
-    </div>
-</div>
+

@@ -1,6 +1,4 @@
-﻿@using LoowooTech.Artemisinine.Models
-@using LoowooTech.Artemisinine.Common
-@{
+﻿@{
     ViewBag.Title = "动态图层";
     Layout = "~/Views/Map/_Layout.cshtml";
     List<int> Years = ViewBag.List;
@@ -11,14 +9,26 @@
     #map_zoom_slider { top: 90px; }
     #Search { display: block; position: absolute; z-index: 2; top: 70px; left: 20px; }
     #HomeButton { position: absolute; top: 115px; left: 20px; z-index: 50; }
-    #timeInfo { border-radius: 4px; display: block; padding: 5px; position: absolute; top:65px; left:80px; text-align: center; width: 1000px; z-index: 99; }
+    #timeInfo { 
+    display: block;
+    padding: 5px;
+    position: absolute;
+    /* top: 65px; */
+    /* left: 80px; */
+    text-align: center;
+    /* width: 1000px; */
+    z-index: 99;
+    bottom: 0px;
+    left: 200px;
+    right: 200px; }
     #menu { position: absolute; z-index: 2; top: 225px; left: 20px; }
     .blurInfo { position: absolute; top: 10px; right: 5px; font-size: 1.25em; font-family: monospace; color: #4C4C4C; width: 240px; background-color: #FFFFFF; padding: 10px; border: 2px solid #57585A; border-radius: 20px; }
         .blurInfo p span { background-color: #FFFFFF; padding: 0 5px; border-radius: 5px; }
         .blurInfo input[type=range] { width: 100%; display: block; }
-    .chart-panel { position: absolute; bottom: 0px; background-color: rgba(255, 255, 255, 0.22); height: 150px; }
-    .chart { float: left; display: block; height: inherit; border:solid 1px #808080;color:#999;}
-
+    .chart { position:absolute; border:solid 1px #808080;color:#999; background-color: rgba(255, 255, 255, 0.22); height: 150px; }
+    #chart1{bottom:15px;left:0px;}
+    #chart2{top:62px;right:0px;}
+    #chart3{right:0px;bottom:0px;}
     .dijitRuleMark,.dijitSliderBar{border-color: white;}
 </style>
 <script src="~/Maps/Info.js"></script>
@@ -61,19 +71,13 @@
         </select>
     </div>
 </div>
-<div class="chart-panel">
-    <div id="chart1" class="chart">
-        <h4>疾病数据列表</h4>
-    </div>
-    <div id="chart2" class="chart">
-        <h4>统计图</h4>
-    </div>
-    <div id="chart3" class="chart">
-        <h4>数据分析</h4>
-    </div>
-    <div id="chart4" class="chart">
-
-    </div>
+<div id="chart1" class="chart">
+</div>
+<div id="chart2" class="chart">
+    <canvas id="canvas-chart2"></canvas>
+</div>
+<div id="chart3" class="chart">
+    <canvas id="canvas-chart3"></canvas>
 </div>
 <div id="map" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'center'">
     <div id="HomeButton"></div>
@@ -90,11 +94,9 @@
     <p>Min Value:<span id="minValue">0</span></p>
     <input id="minControl" type="range" max="500" min="0" value="0" step="1" />
 </div>
-<div id="bottomPanel">
-    <div id="timeInfo">
-        <div>当前日期为：<span id="modern"></span></div>
-        <div id="timeSliderDiv"></div>
-    </div>
+<div id="timeInfo">
+    <div>当前日期为：<span id="modern"></span></div>
+    <div id="timeSliderDiv"></div>
 </div>
 <script>
     $(function () {
@@ -102,10 +104,25 @@
         var footerHeight = $("#footer").height();
         var clientHeight = document.documentElement.clientHeight;
         var mapHeight = clientHeight - headerHeight - footerHeight;
-        console.log(headerHeight);
-        console.log(footerHeight);
-        console.log(clientHeight);
-        console.log(mapHeight);
+
         $("#map").height(mapHeight);
+        var ctx = $("#myChart").get(0).getContext("2d");
+        @*var data = {
+            labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(labels)),
+            datasets: [
+                {
+                    label: "",
+                    fillColor: "rgba(220,220,220,0.2)",
+                    strokeColor: "rgba(151,187,205,1)",
+                    pointColor: "rgba(220,220,220,1)",
+                    pointStrokeColor: "#fff",
+                    pointHighlightFill: "#fff",
+                    pointHighlightStroke: "rgba(220,220,220,1)",
+                    data: @Html.Raw(JsonConvert.SerializeObject(data))
+                }
+            ]
+        }; 
+        
+        var myLineChart = new Chart(ctx).Line(data);*@
     });
 </script>

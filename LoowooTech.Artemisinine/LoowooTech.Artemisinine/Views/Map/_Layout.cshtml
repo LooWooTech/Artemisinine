@@ -1,20 +1,8 @@
 ﻿@{
-    Layout = null;
+    Layout = "~/Views/Shared/_Layout.cshtml";
     string arcgisServer = AppSettings.Current["SERVER"];
 }
-
-<!DOCTYPE html>
-
-<html>
-<head>
-    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-    <title>@(ViewBag.Title)</title>
-    <link rel="stylesheet"  href="~/Content/bootstrap.css" />
-    <link rel="stylesheet"  href="~/Content/bootswatch.min.css" />
-    <link rel="stylesheet"  href="~/Content/main.min.css" />
-    <link rel="stylesheet" href="~/Content/jquery.shCircleLoader.css" />
-    <script src="~/Scripts/jquery-2.1.4.min.js"></script>
-    <script src="~/Scripts/bootstrap.min.js"></script>
+@section Static{
     <script>
         var arcgisServer = "@(arcgisServer)";
     </script>
@@ -23,8 +11,24 @@
     <link rel="stylesheet" type="text/css" href="http://@(arcgisServer)/arcgis_js_api/library/3.14/3.14/dijit/themes/claro/claro.css" />
     <script src="http://@(arcgisServer)/arcgis_js_api/library/3.14/3.14/init.js"></script>
     <script src="~/Scripts/jquery.shCircleLoader-min.js"></script>
-</head>
-<body class="claro">
-    @RenderBody()
-</body>
-</html>
+}
+@section Nav{
+    <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">地图控制<span class="caret"></span></a>
+        <ul class="dropdown-menu">
+            <li><a href="" id="">卫星影像</a></li>
+            <li><a href="" id="">医疗机构</a></li>
+            <li><a href="" id=""></a></li>
+        </ul>
+    </li>
+    <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">疾病数据<span class="caret"></span></a>
+        <ul class="dropdown-menu">
+            <li><a href="#">2015</a></li>
+            <li><a href="#">2015</a></li>
+            <li><a href="#">2015</a></li>
+            <li><a href="javascript:void(0)" id="TTime">疾病演变</a></li>
+        </ul>
+    </li>
+}
+@RenderBody()
