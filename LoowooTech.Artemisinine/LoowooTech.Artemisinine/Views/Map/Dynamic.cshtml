@@ -4,7 +4,7 @@
     List<int> Years = ViewBag.List;
 
 }
-<div id="masker" style="background:#000;text-align:center;width:100%;position:absolute;bottom:0px;top:60px;z-index:999;">
+@*<div id="masker" style="background:#000;text-align:center;width:100%;position:absolute;bottom:0px;top:60px;z-index:999;">
     <div id="loader" style="width: 112px; height: 112px;margin:40px auto;"></div>
 </div>
 <script type="text/javascript">
@@ -13,7 +13,7 @@
         $('#loader').shCircleLoader('destroy');
         $("#masker").remove();
     };
-</script>
+</script>*@
 <style>
     body, #map { margin: 0; padding: 0; background-color: black; }
     #map_zoom_slider { top: 90px; }
@@ -30,14 +30,14 @@
     #chart3 { right: 0px; bottom: 0px; }
     .dijitRuleMark, .dijitSliderBar { border-color: white; }
 </style>
-<script src="~/Scripts/Chart.js"></script>
+@*<script src="~/Scripts/Chart.js"></script>*@
 <script src="~/Maps/Info.js"></script>
 <script src="~/Scripts/Dynamic.js"></script>
-<script src="~/Scripts/jquery.shCircleLoader-min.js"></script>
 <script>
     $(function () {
         $("#blurInfo").hide();
-        $("#loader").shCircleLoader({ color: "Red" });
+        console.log("fuck");
+        //$("#loader").shCircleLoader({ color: "Red" });
     })
 </script>
 
@@ -57,7 +57,7 @@
     </div>
     <div class="form-group">
         <label class="control-label">疾病类型：</label>
-        <select class="form-control" name="SickType">
+        <select class="form-control" name="SickType" id="SickType">
             @foreach (Sick sicktype in Enum.GetValues(typeof(Sick)))
             {
                 <option value="@(sicktype.ToString())">@(sicktype.GetDescription())</option>
@@ -117,7 +117,6 @@
 </div>
 <div id="timeInfo">
     <div>当前日期为：<span id="modern"></span></div>
-    <div id="timeSliderDiv"></div>
     <div id="timeSliderDivAA"></div>
     <div id="timeSliderDivRabies"></div>
 </div>
