@@ -4,6 +4,16 @@
     List<int> Years = ViewBag.List;
 
 }
+<div id="masker" style="background:#000;text-align:center;width:100%;position:absolute;bottom:0px;top:60px;z-index:999;">
+    <div id="loader" style="width: 112px; height: 112px;margin:40px auto;"></div>
+</div>
+<script type="text/javascript">
+    $('#loader').shCircleLoader();
+    window.onload = function () {
+        $('#loader').shCircleLoader('destroy');
+        $("#masker").remove();
+    };
+</script>
 <style>
     body, #map { margin: 0; padding: 0; background-color: black; }
     #map_zoom_slider { top: 90px; }
@@ -14,12 +24,13 @@
     .blurInfo { position: absolute; top: 10px; right: 5px; font-size: 1.25em; font-family: monospace; color: #4C4C4C; width: 240px; background-color: #FFFFFF; padding: 10px; border: 2px solid #57585A; border-radius: 20px; }
         .blurInfo p span { background-color: #FFFFFF; padding: 0 5px; border-radius: 5px; }
         .blurInfo input[type=range] { width: 100%; display: block; }
-    .chart { position: absolute; border: solid 1px #808080; color: #999; background-color: rgba(255, 255, 255, 0.22); height: 150px; }
-    #chart1 { bottom: 15px; left: 0px; }
-    #chart2 { top: 62px; right: 0px; }
+    .chart { position: absolute;  color: #999; background-color: rgba(255, 255, 255, 0.22); height: 150px; }
+    #chart1 { top: 62px; right: 0px; }
+    #chart2 { top: 300px; right: 0px; }
     #chart3 { right: 0px; bottom: 0px; }
     .dijitRuleMark, .dijitSliderBar { border-color: white; }
 </style>
+<script src="~/Scripts/Chart.js"></script>
 <script src="~/Maps/Info.js"></script>
 <script src="~/Scripts/Dynamic.js"></script>
 <script src="~/Scripts/jquery.shCircleLoader-min.js"></script>
@@ -29,11 +40,14 @@
         $("#loader").shCircleLoader({ color: "Red" });
     })
 </script>
+
+
 <div id="HomeButton"></div>
 <div id="Search"></div>
-<div id="menu">
+
+<form id="menu" class="col-lg-1">
     <div class="form-group">
-        <label for="" class="control-label">图层：</label>
+        <label class="control-label">图层：</label>
         <select class="form-control" id="MapType">
             @foreach (MapType maptype in Enum.GetValues(typeof(MapType)))
             {
@@ -42,8 +56,8 @@
         </select>
     </div>
     <div class="form-group">
-        <label for="" class="control-label">疾病类型：</label>
-        <select class="form-control" id="SickType">
+        <label class="control-label">疾病类型：</label>
+        <select class="form-control" name="SickType">
             @foreach (Sick sicktype in Enum.GetValues(typeof(Sick)))
             {
                 <option value="@(sicktype.ToString())">@(sicktype.GetDescription())</option>
@@ -51,16 +65,35 @@
         </select>
     </div>
     <div class="form-group">
-        <label for="" class="control-label">统计图类型：</label>
-        <select class="form-control" id="chartmode">
-            @foreach (ChartMode mode in Enum.GetValues(typeof(ChartMode)))
+        <label class="control-label">行政区：</label>
+        <select class="form-control" name="XZC">
+            @foreach (var xzc in GISManager.GetXZC())
             {
-                <option value="@(mode.ToString())">@(mode.GetDescription())</option>
+                <option value="@(xzc)">@(xzc)</option>
             }
         </select>
     </div>
-</div>
+    <div class="form-group">
+        <label class="control-label">起始时间：</label>
+        <input type="text" name="BeginTime" value="2015-9-4" class="form-control" style="width:120px;" />
+    </div>
+    <div class="form-group">
+        <label class="control-label">结束时间：</label>
+        <input type="text" name="EndTime" value="2015-10-25" class="form-control" style="width:120px;" />
+    </div>
+    <div class="form-group">
+        <a href="#" id="btn-chart-time" class="btn btn-primary">时间对比</a>
+    </div>
+    <div class="form-group">
+        <a href="#" id="btn-chart-area" class="btn btn-primary">地区对比</a>
+    </div>
+    <div class="form-group">
+        <a href="#" id="btn-chart-type" class="btn btn-primary">病种对比</a>
+    </div>
+    <input type="hidden" id="control-click-btn" name="type" />
+</form>
 <div id="chart1" class="chart">
+    <canvas id="canvas-chart1"></canvas>
 </div>
 <div id="chart2" class="chart">
     <canvas id="canvas-chart2"></canvas>
@@ -96,23 +129,76 @@
         var mapHeight = clientHeight - headerHeight - footerHeight;
 
         $("#map").height(mapHeight);
-        var ctx = $("#myChart").get(0).getContext("2d");
-        @*var data = {
-            labels: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(labels)),
-            datasets: [
-                {
-                    label: "",
-                    fillColor: "rgba(220,220,220,0.2)",
-                    strokeColor: "rgba(151,187,205,1)",
-                    pointColor: "rgba(220,220,220,1)",
-                    pointStrokeColor: "#fff",
-                    pointHighlightFill: "#fff",
-                    pointHighlightStroke: "rgba(220,220,220,1)",
-                    data: @Html.Raw(JsonConvert.SerializeObject(data))
-                }
-            ]
-        };
 
-        var myLineChart = new Chart(ctx).Line(data);*@
+        $("#btn-chart-area").click(function () {
+            loadCharts("xzc");
+            return false;
+        });
+
+        $("#btn-chart-time").click(function () {
+            loadCharts("time");
+            return false;
+        });
+
+        $("#btn-chart-type").click(function () {
+            loadCharts("sick");
+            return false;
+        });
+
+        function loadCharts(clickBtn) {
+            $("#control-click-btn").val(clickBtn);
+            var data = $("#menu").serialize();
+            $.getJSON("/map/getchartdata", data, function (json) {
+                console.log(json);
+                switch (clickBtn) {
+                    case "sick":
+                        loadSickChart(json);
+                        break;
+                    case "time":
+                        loadTimeChart(json);
+                        break;
+                    case "xzc":
+                        loadXzcChart(json);
+                        break;
+                }
+            });
+        }
+
+        function loadTimeChart(data) {
+            var labels = [];
+            var datas = [];
+            for (var i in data) {
+                var time = new Date(i);
+                labels.push(time.getYear() + "-" + time.getMonth() + "-" + time.getDate());
+                datas.push(data[i]);
+            }
+            var ctx = $("#canvas-chart1").get(0).getContext("2d");
+            var chartData = {
+                labels: labels,
+                datasets: [
+                    {
+                        label: "发病趋势图",
+                        fillColor: "rgba(220,220,220,0.2)",
+                        strokeColor: "rgba(220,220,220,1)",
+                        pointColor: "rgba(220,220,220,1)",
+                        pointStrokeColor: "#ccc",
+                        pointHighlightFill: "#ccc",
+                        pointHighlightStroke: "rgba(220,220,220,1)",
+                        data: datas
+                    }
+                ]
+            };
+            new Chart(ctx).Line(chartData, {
+                bezierCurve: false
+            });
+        }
+
+        function loadXzcChart(data) {
+            
+        }
+
+        function loadSickChart(data) {
+
+        }
     });
 </script>
