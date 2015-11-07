@@ -13,5 +13,6 @@ namespace LoowooTech.Artemisinine.Manager
         public ARDbContext(string connectionString) : base(connectionString) { }
         public DbSet<User> Users { get; set; }
         public DbSet<UploadFile> Files { get; set; }
+        public DbSet<Record> Records { get; set; }
     }
 }

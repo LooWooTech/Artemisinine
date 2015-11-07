@@ -507,13 +507,13 @@ namespace LoowooTech.Artemisinine.Common
         {
             return arcSDEWorkspaceOpen(Server, Instance, User, Password, Database, Version);
         }
-        public static void Operate(Dictionary<DateTime, List<Disease>> Dict,string Thing)
+        public static List<DateTime> Operate(Dictionary<DateTime, List<Disease>> Dict,string Thing)
         {
             IWorkspace workspace = OpenSde();
             if (workspace == null)
             {
                 Console.WriteLine("无法连接SDE失败！");
-                return;
+                return null;
             }
             else
             {
@@ -523,17 +523,19 @@ namespace LoowooTech.Artemisinine.Common
             if (HFeatureClass == null)
             {
                 Console.WriteLine("未找到医疗机构坐标数据,即将退出程序..............");
-                return;
+                return null;
             }
             InitSDE();
             int Index=HFeatureClass.Fields.FindField("NAME");
             int IndexGDM = HFeatureClass.Fields.FindField("ZZJGDM");
             int IndexDM = HFeatureClass.Fields.FindField("XZDM");
+            var list = new List<DateTime>();
             foreach (var key in Dict.Keys)
             {
                 var featureClassName=string.Format("{0}{1}{2}{3}",Thing+SicknessName, key.Year.ToString("0000"), key.Month.ToString("00"), key.Day.ToString("00"));
                 if (SaveInToSDE(workspace, Dict[key], key, HFeatureClass, Index,IndexGDM,IndexDM, featureClassName))
                 {
+                    list.Add(key);
                     Console.WriteLine("成功生成要素类：" + featureClassName);
                 }
                 else
@@ -541,6 +543,7 @@ namespace LoowooTech.Artemisinine.Common
                     Console.WriteLine("生成要素类：" + featureClassName + "时，发生错误");
                 }
             }
+            return list;
             
         }
         //保存到一个要素类中
@@ -647,6 +650,18 @@ namespace LoowooTech.Artemisinine.Common
                 return GetList(CFeatureClass, Index);
             }
             return null;
+        }
+        /// <summary>
+        /// 根据疾病名称获取对应的记录年份
+        /// </summary>
+        /// <param name="SickName">疾病名称</param>
+        /// <returns>年份列表</returns>
+        public static List<string> GetYear(string SickName)
+        {
+            var list = new List<string>();
+            var featureClassNames = GetFeatureClassNames(SDEWorkspace,SickName+SicknessName);
+
+            return list;
         }
         public static List<string> GetList(IFeatureClass featureClass,int Index,string Filter=null)
         {

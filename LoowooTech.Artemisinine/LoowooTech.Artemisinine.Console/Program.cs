@@ -27,7 +27,15 @@ namespace LoowooTech.Artemisinine.Console
                 System.Console.WriteLine("成功读取到文件：" + uploadfile.FileName);
                 var values = ExcelHelper.Analyze(uploadfile.SavePath, uploadfile.Thing, uploadfile.Year);
                 System.Console.WriteLine("开始保存到SDE中");
-                GISManager.Operate(values,uploadfile.Thing);
+                var rightTime=GISManager.Operate(values,uploadfile.Thing);
+                if (rightTime != null)
+                {
+                    var recordTool = new RecordManager();
+                    foreach (var item in rightTime)
+                    {
+                        recordTool.Update(item, uploadfile.Thing);
+                    }
+                }
                 System.Console.WriteLine("开始Shapefile文件！");
                 //GISManager.CreateShapeFile(values);
                 System.Console.WriteLine("保存在一个文件中");
