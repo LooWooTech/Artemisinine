@@ -743,10 +743,14 @@ namespace LoowooTech.Artemisinine.Common
                 var time=startTime.AddDays(i);
                 var featureClassName = string.Format("{0}{1}{2}{3}", sicktype.ToString() + sicktype.GetDescription() + SicknessName, time.Year.ToString("0000"), time.Month.ToString("00"), time.Day.ToString("00"));
                 var featureClass = GetFeatureClass(SDEWorkspace, featureClassName);
-                if (!dict.ContainsKey(time))
+                if (featureClass != null)
                 {
-                    dict.Add(time, Statistics(featureClass, "Data", "XZC='" + XZC + "'"));
+                    if (!dict.ContainsKey(time))
+                    {
+                        dict.Add(time, Statistics(featureClass, "Data", "XZC='" + XZC + "'"));
+                    }
                 }
+                
             }
             return dict;
         }

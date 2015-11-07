@@ -210,14 +210,6 @@ require([
                     layers[i].setVisibility(false);
                     layers[i].setOpacity(0);
                 }
-                //if (current != undefined) {
-                //    layers[current].setVisibility(false);
-                //    layers[current].setOpacity(0);
-                //}
-                //if (line != undefined) {
-                //    layers[line].setVisibility(false);
-                //    layers[line].setOpacity(0);
-                //}
                 break;
             case "Heat":
                 count = heatlayers.length;
@@ -225,28 +217,13 @@ require([
                     heatlayers[i].setVisibility(false);
                     heatlayers[i].setOpacity(0);
                 }
-                //if (current != undefined) {
-                //    heatlayers[current].setVisibility(false);
-                //    heatlayers[current].setOpacity(0);
-                //}
-
-                //if (line != undefined) {
-                //    heatlayers[line].setVisibility(false);
-                //    heatlayers[line].setOpacity(0);
-                //}
                 domUtils.hide(blurDiv);
                 break;
             case "Onset":
-                count = FBLayers.length;
-                for (var i = 0; i < count; i++) {
-                    map.removeLayer(FBLayers[i]);
-                }
+                ClearFBLayers();
                 break;
             case "Ellipse":
-                count = Ellipses.length;
-                for (var i = 0; i < count; i++) {
-                    map.removeLayer(Ellipses[i]);
-                }
+                ClearEllipseLayers();
                 break;
             default: break;
         }
@@ -256,9 +233,20 @@ require([
     //疾病类型切换
     var sickbtn = dom.byId("SickType");
     dojo.connect(sickbtn, "onchange", function () {
+        console.log("疾病类型切换");
+        ClearFeatureLayers();
+        ClearHeatLayers();
+        ClearEllipseLayers();
+        ClearFBLayers();
         SickChange();
+        AddAllFeatureLayers();
+        AddDynamicLayer();
+        var time = GetTime();
+        timeExtentChange(time);
+
     });
 
+    //疾病类型切换
     function SickChange() {
         $("#timeSliderDiv" + sickType).hide();
         sickType = sickbtn.value;
@@ -273,6 +261,7 @@ require([
         }
     }
 
+    //获取当前选中疾病类型中的当前时间点
     function GetTime() {
         console.log(sickType);
         var slider;
@@ -525,7 +514,36 @@ require([
         return host + "/arcgis/rest/services/" + MapService + "/MapServer/";
     }
 
-    //
+    //清除疾病数据图层
+    function ClearFeatureLayers() {
+        var count = layers.length;
+        for (var i = 0; i < count; i++) {
+            map.removeLayer(layers[i]);
+        }
+    }
+    //清除热度图数据图层
+    function ClearHeatLayers() {
+        var count = heatlayers.length;
+        for (var i = 0; i < count; i++) {
+            map.removeLayer(heatlayers[i]);
+        }
+    }
+    //清除椭圆图数据图层
+    function ClearEllipseLayers() {
+        var count = Ellipses.length;
+        for (var i = 0; i < count; i++) {
+            map.removeLayer(Ellipses[i]);
+        }
+    }
+    //清除发病图数据图层
+    function ClearFBLayers() {
+        var count = FBLayers.length;
+        for (var i = 0; i < count; i++) {
+            map.removeLayer(FBLayers[i]);
+        }
+    }
+
+    //添加疾病数据和热力图
     function AddAllFeatureLayers() {
         
         for (var i = 0; i < data.length; i++) {
@@ -535,14 +553,14 @@ require([
                 opacity: 0,
                 visible: false,
                 outFields: ["*"],
-                infoTemplate: new InfoTemplate("疾病数据", "医疗机构：${JGID}<br/>名称：${NAME}<br/>疾病数据：${Data}<br/>时间：${Time}")
+                infoTemplate: new InfoTemplate("疾病数据", "医疗机构：${JGID}<br/>名称：${NAME}<br/>疾病数据：${Data}<br/>")
             });
             heatlayers[i] = new FeatureLayer(GetLayerUrl("Data") + data[i].id, {
                 mode: FeatureLayer.MODE_SNAPSHOT,
                 opacity: 0,
                 visible: false,
                 outFields: ["*"],
-                infoTemplate: new InfoTemplate("疾病数据", "医疗机构：${JGID}<br/>名称：${NAME}<br/>疾病数据：${Data}<br/>时间：${Time}")
+                infoTemplate: new InfoTemplate("疾病数据", "医疗机构：${JGID}<br/>名称：${NAME}<br/>疾病数据：${Data}<br/>")
             });
 
             layers[i].setRenderer(renderer);
@@ -550,50 +568,9 @@ require([
         }
         map.addLayers(layers);
         map.addLayers(heatlayers);
-
-        /*
-        for (var i = 0; i < Info2.length; i++) {
-            var templayers = new Array();//医疗疾病
-            var tempheat = new Array();//热力图
-            var tempEllipse = new Array();//椭圆图
-            var tempFB = new Array();//发病
-            for (var j = 0; j < Info2[i].length; j++) {
-                templayers[j] = new FeatureLayer(GetLayerUrl("Data") + Info2[i][j].id, {
-                    mode: FeatureLayer.MODE_ONDEMAND,
-                    opacity: 0,
-                    visible: false,
-                    outFields: ["*"],
-                    infoTemplate: new InfoTemplate("疾病数据", "医疗机构ID：${JGID}<br/>名称：${NAME}<br/>疾病数据：${Data}<br/>时间：${Time}")
-                });
-                templayers[j].setRenderer(renderer);
-                tempheat[j] = new FeatureLayer(GetLayerUrl("Data") + Info2[i][j].id, {
-                    mode: FeatureLayer.MODE_SNAPSHOT,
-                    opacity: 0,
-                    visible: false,
-                    outFields: ["*"],
-                    InfoTemplate: new InfoTemplate("疾病数据", "医疗机构：${JGID}<br/>名称：${NAME}<br/>疾病数据：${Data}<br/>时间：${Time}")
-                });
-                tempheat[j].setRenderer(heatmapRenderer);
-                tempEllipse[j] = new FeatureLayer(GetLayerUrl("Ellipse") + Info[i][j].Ellipse, {
-                    opacity: 0
-                });
-                tempEllipse[j].setRenderer(ellipseRenderer);
-                tempFB[j] = new ArcGISDynamicMapServiceLayer(GetLayerUrl("FBT"), {
-                    opacity: 0,
-                    visible: false
-                });
-                tempFB[j].setVisibleLayers([Info2[i][j].FBT]);
-            }
-            AllLayers[i] = templayers;
-            AllHeatLayers[i] = tempheat;
-            AllEllipseLayers[i] = tempEllipse;
-            AllFBLayers[i] = tempFB;
-            map.addLayers(AllLayers[i]);
-            map.addLayers(AllHeatLayers[i]);
-
-        }*/
     }
 
+    //添加椭圆图和发病图
     function AddDynamicLayer() {
         
         for (var i = 0; i < data.length; i++) {
@@ -685,13 +662,6 @@ require([
             $("#" + IDNAME).hide();
         }*/
     }
-
-    function extentChanged(timeExtent) {
-        console.log(timeExtent.startTime + "   " + timeExtent.endTime);
-    }
-    
-
-
 
     //加载所有的疾病数据图层
     map.on("load", function () {
