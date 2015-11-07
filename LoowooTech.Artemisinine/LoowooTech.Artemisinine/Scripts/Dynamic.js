@@ -220,10 +220,10 @@ require([
                 domUtils.hide(blurDiv);
                 break;
             case "Onset":
-                ClearLayers(FBLayers);
+                ClearFBLayers();
                 break;
             case "Ellipse":
-                ClearLayers(Ellipses);
+                ClearEllipseLayers();
                 break;
             default: break;
         }
@@ -553,14 +553,14 @@ require([
                 opacity: 0,
                 visible: false,
                 outFields: ["*"],
-                infoTemplate: new InfoTemplate("疾病数据", "医疗机构：${JGID}<br/>名称：${NAME}<br/>疾病数据：${Data}<br/>时间：${Time}")
+                infoTemplate: new InfoTemplate("疾病数据", "医疗机构：${JGID}<br/>名称：${NAME}<br/>疾病数据：${Data}<br/>")
             });
             heatlayers[i] = new FeatureLayer(GetLayerUrl("Data") + data[i].id, {
                 mode: FeatureLayer.MODE_SNAPSHOT,
                 opacity: 0,
                 visible: false,
                 outFields: ["*"],
-                infoTemplate: new InfoTemplate("疾病数据", "医疗机构：${JGID}<br/>名称：${NAME}<br/>疾病数据：${Data}<br/>时间：${Time}")
+                infoTemplate: new InfoTemplate("疾病数据", "医疗机构：${JGID}<br/>名称：${NAME}<br/>疾病数据：${Data}<br/>")
             });
 
             layers[i].setRenderer(renderer);
