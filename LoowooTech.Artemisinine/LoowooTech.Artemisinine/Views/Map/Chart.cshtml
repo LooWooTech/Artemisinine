@@ -1,26 +1,103 @@
 ﻿@{
     Layout = null;
-    string JGID=ViewBag.JGID;
+    var type = Request.QueryString["type"];
 }
-
 <!DOCTYPE html>
-
 <html>
 <head>
     <meta name="viewport" content="width=device-width" />
     <title>Chart</title>
+    <script src="~/Scripts/jquery-1.9.1.min.js"></script>
     <script src="~/Scripts/Chart.js"></script>
-    <script type="text/javascript">
-        @{
-            Html.RenderAction("JavaScriptContext", new { JGID = JGID });
-        }
-    </script>
+<style>
+    body{padding:0;margin:0;overflow:hidden;}
+</style>
 </head>
+
 <body>
-    <div style="width:100%;">
-        <div>
-            <canvas id="canvas" height="428" width="571" style="width:571px;height:428px;"></canvas>
-        </div>
-    </div>
+    <canvas id="canvas-chart"></canvas>
+    <script>
+        $(function () {
+            $("#btn-chart-@(type)", parent.document).click(function () {
+                var data = $("#menu", parent.document).serialize();
+                $.getJSON("/map/getchartdata?type=@(type)", data, function (json) {
+                    console.log(json);
+                    loadChart(json);
+                });
+                return false;
+            });
+
+            function loadChart(data) {
+                @switch (type)
+                {
+                    case "xzc":
+                        <text>
+                </text>
+                        break;
+                    case "time":
+                        <text>
+                var labels = [];
+                var datas = [];
+                for (var i in data) {
+                    var time = new Date(i);
+                    labels.push(time.getYear() + "-" + time.getMonth() + "-" + time.getDate());
+                    datas.push(data[i]);
+                }
+                var ctx = $("#canvas-chart").get(0).getContext("2d");
+                var chartData = {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: "发病趋势图",
+                            fillColor: "rgba(220,220,220,0.2)",
+                            strokeColor: "rgba(220,220,220,1)",
+                            pointColor: "rgba(220,220,220,1)",
+                            pointStrokeColor: "#ccc",
+                            pointHighlightFill: "#ccc",
+                            pointHighlightStroke: "rgba(220,220,220,1)",
+                            data: datas
+                        }
+                    ]
+                };
+                new Chart(ctx).Line(chartData, {
+                    bezierCurve: false, pointDot: false, datasetStrokeWidth: 1,
+                });
+
+                </text>
+                        break;
+                    case "sick":
+                        <text>
+                var labels = ["00", "01"];
+                var datas = [0, 0];
+                for (var i = 0; i < labels.length; i++) {
+                    var sick = labels[i];
+                    datas[i] = data[sick] || 0;
+                }
+                var ctx = $("#canvas-chart").get(0).getContext("2d");
+                var chartData = {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: "疾病对比图",
+                            fillColor: "rgba(220,220,220,0.2)",
+                            strokeColor: "rgba(220,220,220,1)",
+                            pointColor: "rgba(220,220,220,1)",
+                            pointStrokeColor: "#ccc",
+                            pointHighlightFill: "#ccc",
+                            pointHighlightStroke: "rgba(220,220,220,1)",
+                            data: datas
+                        }
+                    ]
+                };
+                new Chart(ctx).Bar(chartData, {
+                    bezierCurve: false, barValueSpacing: 50, barStrokeWidth: 0,
+                });
+
+                </text>
+                        break;
+                }
+            }
+        });
+    </script>
 </body>
 </html>
