@@ -663,18 +663,34 @@ require([
         }*/
     }
 
+    //map.on("update-start", function () {
+    //    $("#masker").show();
+    //})
+
+    //map.on("update-end", function () {
+    //    $("#masker").hide();
+    //});
+
     //加载所有的疾病数据图层
     map.on("load", function () {
         //创建所有疾病的时间进度条
+        console.log("load结束");
         CreateTimeSlider();
+        console.log("创建时间进度条OK了");
         SickChange();
+        console.log("");
         for (var i = 0; i < data.length; i++) {
             console.log("id:" + data[i].id + "Time:" + data[i].Time + "FBT:" + data[i].FBT + "Ellipse:" + data[i].Ellipse + "hid:" + data[i].hid);
         }
         AddAllFeatureLayers();
         AddDynamicLayer();
-        
+        console.log("OK");
     });
+
+    //map.on("load", function () {
+    //    console.log("loading....");
+    //});
+
 
 
 

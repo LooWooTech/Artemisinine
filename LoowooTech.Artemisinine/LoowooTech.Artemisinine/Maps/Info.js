@@ -67,4 +67,30 @@ var Info2 = [
 ]
 ];
 
+//require([
+//    "esri/map", "esri/layers/ArcGISTiledMapServiceLayer", "dojo/on",
+//    "dojo/domReady!"
+//], function (Map, Tiled, on) {
+//    var map = new Map("map", {
+//        center: [108.363, 23.094],
+//        logo: false
+//    });
+//    var tiled = new Tiled("http://10.22.102.18:6080/arcgis/rest/services/basemap/MapServer", {
+//        id: "XZQ",
+//        opacity: 0.5
+//    });
+//    map.addLayer(tiled);
+
+//    map.on("update-start", function () {
+//        console.log("start");
+//    });
+
+//    map.on("update-end", function () {
+//        console.log("end");
+//    })
+//    map.on("load", function () {
+//        console.log("loading");
+//    })
+//});
+
 
