@@ -85,8 +85,6 @@ namespace LoowooTech.Artemisinine.Controllers
             var list = MapInfoManager.GetMapInfo(sickType.ToString());
             return Content(list.ToJson());
         }
-
-
         public ActionResult GetChartData(string type, string xzc, Sick? sickType, DateTime? beginTime, DateTime? endTime)
         {
             object data = null;

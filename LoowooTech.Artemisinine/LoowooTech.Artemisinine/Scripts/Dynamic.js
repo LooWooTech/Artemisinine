@@ -17,7 +17,7 @@ var data = [
     { id: 23, Time: new Date("10/08/2015"), hid: 20, FBT: 30,Ellipse:22 }, { id: 22, Time: new Date("10/09/2015"), hid: 21, FBT: 31,Ellipse:21 },
     { id: 21, Time: new Date("10/10/2015"), hid: 22, FBT: 32,Ellipse:20 }, { id: 20, Time: new Date("10/11/2015"), hid: 23, FBT: 33,Ellipse:19 },
     { id: 19, Time: new Date("10/12/2015"), hid: 24, FBT: 34,Ellipse:18 }
-]
+]//当前疾病数据配置信息
 
 var sicktypes = new Array("Rabies", "AA");
 var datas = new Array();//记录当前使用数据
@@ -259,8 +259,10 @@ require([
                 slider = RabiesSlider;
                 break;
         }
-        var time = slider.getCurrentTimeExtent().startTime;
-        console.log(time);
+        var timeExtent = slider.getCurrentTimeExtent();
+        console.log("startTime:" + timeExtent.startTime + " EndTime:" + timeExtent.endTime);
+        var time = slider.getCurrentTimeExtent().endTime;
+        //console.log(time);
         return time;
     }
     //时间进度条发生改变时间
@@ -288,10 +290,17 @@ require([
                 layers[current].opacityCount = 20;
                 console.log("医疗疾病数据从图层编号：" + line + "切换到图层编号：" + current);
                 ShowerSituation(function () {
-                    console.log("医疗疾病数据渐变结束")
-                    if (PlayFlag) {
-                        TimeSliderPlay();
+                    console.log("医疗疾病数据渐变结束");
+                    if (current == (data.length - 1)) {
+                        console.log("到达最后一个时间点");
+                        TimeSliderStop();
+
+                    } else {
+                        if (PlayFlag) {
+                            TimeSliderPlay();
+                        }
                     }
+                    
                 });
                 
                 break;
@@ -299,8 +308,17 @@ require([
                 domUtils.show(blurDiv);
                 heatlayers[current].setVisibility(true);
                 console.log("热力图层从编号：" + line + "切换到图层编号为：" + current);
-                ShowerHeat();
-                console.log("热力图渐变结束");
+                ShowerHeat(function () {
+                    console.log("热度图渐变结束");
+                    if (current == (data.length - 1)) {
+                        console.log("达到最后一个时间点");
+                        TimeSliderStop();
+                    } else {
+                        if (PlayFlag) {
+                            TimeSliderPlay();
+                        }
+                    }
+                });
                 break;
             case "Onset"://发病图
                 if (current != undefined) {
@@ -309,15 +327,34 @@ require([
                     FBLayers[current].setOpacity(0);
                 }
 
-                ShowerOnset();
-                console.log("发病图渐变结束");
+                ShowerOnset(function () {
+                    console.log("发病图渐变结束");
+                    if (current == (data.length - 1)) {
+                        console.log("到达最后一个时间点");
+                        TimeSliderStop();
+                    } else {
+                        if (PlayFlag) {
+                            TimeSliderPlay();
+                        }
+                    }
+                });
                 break;
             case "Ellipse":
                 if (current != undefined) {
                     map.addLayer(Ellipses[current]);
                     Ellipses[current].setOpacity(0);
                 }
-                ShowEllipse();
+                ShowEllipse(function () {
+                    console.log("椭圆图渐变结束");
+                    if (current == (data.length - 1)) {
+                        console.log("到达最后一个时间点");
+                        TimeSliderStop();
+                    } else {
+                        if (PlayFlag) {
+                            TimeSliderPlay();
+                        }
+                    }
+                });
                 break;
             default: break;
         }
@@ -343,53 +380,105 @@ require([
         }
     }
     //热度图数据渐变
-    var ShowerHeat = function () {
-        var opacity = heatlayers[current].opacity;
-        if (opacity < 1) {
-            opacity += 0.05;
-            heatlayers[current].setOpacity(opacity);
-            if (line != undefined && line !== current) {
-                heatlayers[line].setOpacity(1 - opacity);
-                if (Number(1 - opacity) === 0) {
-                    flag = false;
-                    heatlayers[line].setVisibility(false);
-                }
+    var ShowerHeat = function (completefunc) {
+        var lyr = heatlayers[current];
+        if (lyr.opacityCount == undefined) lyr.opacityCount = 20;
+        if (lyr.opacityCount && lyr.opacityCount > 0) {
+            lyr.opacityCount--;
+            lyr.setOpacity(1 - lyr.opacityCount * 0.05);
+
+            if (line!=undefined && line != current) {
+                var lyr2 = heatlayers[line];
+                lyr2.setOpacity(lyr.opacityCount * 0.05);
                 console.log("图层" + line + "透明度:" + heatlayers[line].opacity + "; 图层" + current + "透明度：" + heatlayers[current].opacity);
+                if (lyr.opacityCount == 0) lyr2.setVisibility(false);
             }
-            setTimeout(ShowerHeat, 20);
+            setTimeout(function () { ShowerHeat(completefunc); }, 50);
+        } else {
+            completefunc();
         }
+        //var opacity = heatlayers[current].opacity;
+        //if (opacity < 1) {
+        //    opacity += 0.05;
+        //    heatlayers[current].setOpacity(opacity);
+        //    if (line != undefined && line !== current) {
+        //        heatlayers[line].setOpacity(1 - opacity);
+        //        if (Number(1 - opacity) === 0) {
+        //            heatlayers[line].setVisibility(false);
+        //        }
+        //        console.log("图层" + line + "透明度:" + heatlayers[line].opacity + "; 图层" + current + "透明度：" + heatlayers[current].opacity);
+        //    }
+        //    setTimeout(ShowerHeat, 20);
+        //}
         
     }
     //发病图数据渐变
-    var ShowerOnset = function () {
-        var opacity = FBLayers[current].opacity;
-        if (opacity < 1) {
-            opacity += 0.05;
-            FBLayers[current].setOpacity(opacity);
-            if (line != undefined && line !== current) {
-                FBLayers[line].setOpacity(1 - opacity);
-                if (Number(1 - opacity) === 0) {
-                    FBLayers[line].setVisibility(false);
-                    map.removeLayer(FBLayers[line]);
+    var ShowerOnset = function (completefunc) {
+        var lyr = FBLayers[current];
+        if (lyr.opacityCount == undefined) lyr.opacityCount = 20;
+        if (lyr.opacityCount && lyr.opacityCount > 0) {
+            lyr.opacityCount--;
+            lyr.setOpacity(1 - lyr.opacityCount * 0.05);
+            if (line!=undefined && line != current) {
+                var lyr2 = FBLayers[line];
+                lyr2.setOpacity(lyr.opacityCount * 0.05);
+                if (lyr.opacityCount == 0) {
+                    lyr2.setVisibility(false);
+                    map.removeLayer(lyr2);
                 }
             }
-            setTimeout(ShowerOnset, 20);
+            setTimeout(function () { ShowerOnset(completefunc); }, 50);
+        } else {
+            completefunc();
         }
+
+
+
+        //var opacity = FBLayers[current].opacity;
+        //if (opacity < 1) {
+        //    opacity += 0.05;
+        //    FBLayers[current].setOpacity(opacity);
+        //    if (line != undefined && line !== current) {
+        //        FBLayers[line].setOpacity(1 - opacity);
+        //        if (Number(1 - opacity) === 0) {
+        //            FBLayers[line].setVisibility(false);
+        //            map.removeLayer(FBLayers[line]);
+        //        }
+        //    }
+        //    setTimeout(ShowerOnset, 20);
+        //}
     }
     //椭圆图数据渐变
-    var ShowEllipse = function () {
-        var opacity = Ellipses[current].opacity;
-        if (opacity < 1) {
-            opacity += 0.05;
-            Ellipses[current].setOpacity(opacity);
-            if (line != undefined && line !== current) {
-                Ellipses[line].setOpacity(1 - opacity);
-                if (Number(1 - opacity) === 0) {
-                    map.removeLayer(Ellipses[line]);
+    var ShowEllipse = function (completefunc) {
+        var lyr = Ellipses[current];
+        if (lyr.opacityCount == undefined) lyr.opacityCount = 20;
+        if (lyr.opacityCount && lyr.opacityCount > 0) {
+            lyr.opacityCount--;
+            lyr.setOpacity(1 - lyr.opacityCount * 0.05);
+            if (line!=undefined && line != current) {
+                var lyr2 = Ellipses[line];
+                lyr2.setOpacity(lyr.opacityCount * 0.05);
+                if (lyr.opacityCount == 0) {
+                    //lyr2.setVisibility(false);
+                    map.removeLayer(lyr2);
                 }
             }
-            setTimeout(ShowEllipse, 20);
+            setTimeout(function () { ShowEllipse(completefunc); }, 50);
+        } else {
+            completefunc();
         }
+        //var opacity = Ellipses[current].opacity;
+        //if (opacity < 1) {
+        //    opacity += 0.05;
+        //    Ellipses[current].setOpacity(opacity);
+        //    if (line != undefined && line !== current) {
+        //        Ellipses[line].setOpacity(1 - opacity);
+        //        if (Number(1 - opacity) === 0) {
+        //            map.removeLayer(Ellipses[line]);
+        //        }
+        //    }
+        //    setTimeout(ShowEllipse, 20);
+        //}
     }
     //获取服务链接
     function GetLayerUrl(MapService) {
@@ -515,41 +604,49 @@ require([
                 break;
         }
     }
+
+    
+    //时间进度条点击事件
     var AAPlay = dom.byId("AAButton");
     var RabiesPlay = dom.byId("RabiesButton");
 
     dojo.connect(AAPlay, "click", function () {
-        if (PlayFlag) {
+        if (PlayFlag) {//true->false 暂停
             PlayFlag = false;
-            AAPlay.innerHTML = "<i class='glyphicon glyphicon-pause'></i>";
-            
-        } else {
-            PlayFlag = true;
             AAPlay.innerHTML = "<i class='glyphicon glyphicon-play'></i>";
+            
+        } else {//false->true  播放
+            PlayFlag = true;
+            AAPlay.innerHTML = "<i class='glyphicon glyphicon-pause'></i>";
             AATimeSlider.next();
         }
-
-        console.log(PlayFlag);
-        
-       
-        
-        
+        console.log(PlayFlag);     
     });
     dojo.connect(RabiesPlay, "click", function () {
         console.log(PlayFlag);
         if (PlayFlag) {
             PlayFlag = false;
             RabiesPlay.innerHTML = "<i class='glyphicon glyphicon-play'></i>";
-            RabiesSlider.next();
         } else {
             PlayFlag = true;
             RabiesPlay.innerHTML = "<i class='glyphicon glyphicon-pause'></i>";
-            
+            RabiesSlider.next();
         }
         console.log(PlayFlag);
-        
-        
-    })
+    });
+
+    function TimeSliderStop() {
+        var sicktype = sickbtn.value;
+        PlayFlag = false;
+        switch (sicktype) {
+            case "AA":
+                AAPlay.innerHTML = "<i class='glyphicon glyphicon-play'></i>";
+                break;
+            case "Rabies":
+                RabiesPlay.innerHTML = "<i class='glyphicon glyphicon-play'></i>";
+                break;
+        }
+    }
 
 
     //加载所有的疾病数据图层
@@ -579,7 +676,29 @@ require([
         $("#masker").hide();
     }
 
+    var chartTime = dom.byId("btn-chart-time");
+    var chartXzc = dom.byId("btn-chart-xzc");
+    var chartSick = dom.byId("btn-chart-sick");
 
+    dojo.connect(chartXzc, "click", function () {
+        var xzc = dom.byId("XZC").value;
+        var sickType = sickbtn.value;
+        var beginTime = dom.byId("BeginTime").value;
+        var endTime = dom.byId("EndTime").value;
+        console.log("XZC:" + xzc + "sicktype:" + sickType + "beginTime:" + beginTime + "endTime:" + endTime);
+        $("#chart2").append("<div class='alert alert-dismissable' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><iframe src='/map/chart?type=xzc&&xzc=" + xzc + "&&sickType=" + sickType + "&&beginTime=" + beginTime + "&&endTime=" + endTime + "' class='iframe'></iframe></div>");
+    });
+    dojo.connect(chartTime, "click", function () {
+        var xzc = dom.byId("XZC").value;
+        var sickType = sickbtn.value;
+        $("#chart1").append("<div class='alert alert-dismissable' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><iframe src='/map/chart?type=time&&xzc=" + xzc + "&&sickType=" + sickType + "' class='iframe'></iframe></div>");
+    });
+
+    dojo.connect(chartSick, "click", function () {
+        var beginTime = dom.byId("BeginTime").value;
+        var xzc = dom.byId("XZC").value;
+        $("#chart3").append("<div class='alert alert-dismissable' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><iframe src='/map/chart?type=sick&&xzc=" + xzc + "&&beginTime=" + beginTime + "' class='iframe'></iframe></div>");
+    });
 
     //搜索
     var s = new Search({
