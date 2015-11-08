@@ -46,32 +46,10 @@ namespace LoowooTech.Artemisinine.Controllers
             return View();
         }
 
-        public ActionResult Chart(string JGID)
-        {
-            ViewBag.JGID = JGID;
-            return View();
-        }
-        public string JavaScriptContext(string JGID)
-        {
-            var list = GISManager.GetValues(JGID);
-            return ChartHelper.GetJavaScriptContent(list, Server.MapPath("~/Maps/Chart.js"));
-        }
-
-        public ActionResult ChartLine(string XZC, Sick sick)
-        {
-            var dict = GISManager.GetTrend(XZC, sick);
-            return View();
-        }
-
         public ActionResult Trend()
         {
             ViewBag.List = GISManager.GetXZC();
             return View();
-        }
-
-        public string JavaScriptTrend(string XZQDM, string DiseaseName)
-        {
-            return "";
         }
 
         public ActionResult GetValues(string JGID)
@@ -87,7 +65,7 @@ namespace LoowooTech.Artemisinine.Controllers
         }
 
 
-        public ActionResult GetChartData(string type, string xzc, Sick? sickType, DateTime? beginTime, DateTime? endTime)
+        public ActionResult Chart(string type, string xzc, Sick? sickType, DateTime? beginTime, DateTime? endTime)
         {
             object data = null;
             try
@@ -106,7 +84,8 @@ namespace LoowooTech.Artemisinine.Controllers
                 }
             }
             catch { }
-            return Content(Newtonsoft.Json.JsonConvert.SerializeObject(data), "text/json");
+            ViewBag.Data = data;
+            return View();
         }
     }
 }

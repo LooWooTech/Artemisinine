@@ -15,21 +15,12 @@
 </head>
 
 <body>
-    <canvas id="canvas-chart"></canvas>
+    <canvas id="canvas-chart" style="width:100%;height:100%;"></canvas>
     <script>
         $(function () {
-            $("#btn-chart-@(type)", parent.document).click(function () {
-                var data = $("#menu", parent.document).serialize();
-                $.getJSON("/map/getchartdata?type=@(type)", data, function (json) {
-                    console.log(json);
-                    loadChart(json);
-                });
-                return false;
-            });
-
-            function loadChart(data) {
+            var data = @Html.Raw((ViewBag.Data as object).ToJson());
                 @switch (type)
-                {
+            {
                     case "xzc":
                         <text>
                 </text>
@@ -37,66 +28,67 @@
                     case "time":
                         <text>
                 var labels = [];
-                var datas = [];
-                for (var i in data) {
-                    var time = new Date(i);
-                    labels.push(time.getYear() + "-" + time.getMonth() + "-" + time.getDate());
-                    datas.push(data[i]);
-                }
-                var ctx = $("#canvas-chart").get(0).getContext("2d");
-                var chartData = {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: "发病趋势图",
-                            fillColor: "rgba(220,220,220,0.2)",
-                            strokeColor: "rgba(220,220,220,1)",
-                            pointColor: "rgba(220,220,220,1)",
-                            pointStrokeColor: "#ccc",
-                            pointHighlightFill: "#ccc",
-                            pointHighlightStroke: "rgba(220,220,220,1)",
-                            data: datas
+                        var datas = [];
+                        for (var i in data) {
+                            var time = new Date(i);
+                            console.log(time);
+                            console.log(time.getDate())
+                            labels.push((1900 +time.getYear()) + "-" + (1+time.getMonth()) + "-" + time.getDate());
+                            datas.push(data[i]);
                         }
-                    ]
-                };
-                new Chart(ctx).Line(chartData, {
-                    bezierCurve: false, pointDot: false, datasetStrokeWidth: 1,
-                });
+                        var ctx = $("#canvas-chart").get(0).getContext("2d");
+                        var chartData = {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: "发病趋势图",
+                                    fillColor: "rgba(220,220,220,0.2)",
+                                    strokeColor: "rgba(220,220,220,1)",
+                                    pointColor: "rgba(220,220,220,1)",
+                                    pointStrokeColor: "#ccc",
+                                    pointHighlightFill: "#ccc",
+                                    pointHighlightStroke: "rgba(220,220,220,1)",
+                                    data: datas
+                                }
+                            ]
+                        };
+                        new Chart(ctx).Line(chartData, {
+                            bezierCurve: false, pointDot: false, datasetStrokeWidth: 1,
+                        });
 
-                </text>
+                        </text>
                         break;
                     case "sick":
                         <text>
                 var labels = ["00", "01"];
-                var datas = [0, 0];
-                for (var i = 0; i < labels.length; i++) {
-                    var sick = labels[i];
-                    datas[i] = data[sick] || 0;
-                }
-                var ctx = $("#canvas-chart").get(0).getContext("2d");
-                var chartData = {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: "疾病对比图",
-                            fillColor: "rgba(220,220,220,0.2)",
-                            strokeColor: "rgba(220,220,220,1)",
-                            pointColor: "rgba(220,220,220,1)",
-                            pointStrokeColor: "#ccc",
-                            pointHighlightFill: "#ccc",
-                            pointHighlightStroke: "rgba(220,220,220,1)",
-                            data: datas
+                        var datas = [0, 0];
+                        for (var i = 0; i < labels.length; i++) {
+                            var sick = labels[i];
+                            datas[i] = data[sick] || 0;
                         }
-                    ]
-                };
-                new Chart(ctx).Bar(chartData, {
-                    bezierCurve: false, barValueSpacing: 50, barStrokeWidth: 0,
-                });
+                        var ctx = $("#canvas-chart").get(0).getContext("2d");
+                        var chartData = {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: "疾病对比图",
+                                    fillColor: "rgba(220,220,220,0.2)",
+                                    strokeColor: "rgba(220,220,220,1)",
+                                    pointColor: "rgba(220,220,220,1)",
+                                    pointStrokeColor: "#ccc",
+                                    pointHighlightFill: "#ccc",
+                                    pointHighlightStroke: "rgba(220,220,220,1)",
+                                    data: datas
+                                }
+                            ]
+                        };
+                        new Chart(ctx).Bar(chartData, {
+                            bezierCurve: false, barValueSpacing: 50, barStrokeWidth: 0,
+                        });
 
-                </text>
+                        </text>
                         break;
                 }
-            }
         });
     </script>
 </body>
