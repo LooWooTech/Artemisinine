@@ -2,25 +2,18 @@
     ViewBag.Title = "动态图层";
     Layout = "~/Views/Map/_Layout.cshtml";
     List<int> Years = ViewBag.List;
-    
-    var sicks = new List<string>();
-    foreach (Sick sicktype in Enum.GetValues(typeof(Sick)))
-    {
-        sicks.Add(sicktype.GetDescription());
-    }
-    var xzcs = GISManager.GetXZC();
+
 }
-<script src="~/Scripts/jquery.shCircleLoader-min.js"></script>
 <div id="masker" style="background:#000;text-align:center;width:100%;position:absolute;bottom:0px;top:60px;z-index:999;">
     <div id="loader" style="width: 112px; height: 112px;margin:40px auto;"></div>
 </div>
-<script type="text/javascript">
+@*<script type="text/javascript">
     $('#loader').shCircleLoader();
     window.onload = function () {
         $('#loader').shCircleLoader('destroy');
         $("#masker").remove();
     };
-</script>
+</script>*@
 <style>
     body, #map { margin: 0; padding: 0; background-color: black; }
     #map_zoom_slider { top: 90px; }
@@ -31,18 +24,22 @@
     .blurInfo { position: absolute; top: 10px; right: 5px; font-size: 1.25em; font-family: monospace; color: #4C4C4C; width: 240px; background-color: #FFFFFF; padding: 10px; border: 2px solid #57585A; border-radius: 20px; }
         .blurInfo p span { background-color: #FFFFFF; padding: 0 5px; border-radius: 5px; }
         .blurInfo input[type=range] { width: 100%; display: block; }
-    .chart { position: absolute;  color: #999; background-color: rgba(255, 255, 255, 0.22); height: 150px;z-index:99999;}
+    .chart { position: absolute;  color: #999; background-color: rgba(255, 255, 255, 0.22); height: 150px; }
     #chart1 { top: 62px; right: 0px; }
     #chart2 { top: 300px; right: 0px; }
     #chart3 { right: 0px; bottom: 0px; }
     .dijitRuleMark, .dijitSliderBar { border-color: white; }
-    .iframe{border:none;overflow:hidden;}
 </style>
+@*<script src="~/Scripts/Chart.js"></script>*@
 <script src="~/Maps/Info.js"></script>
 <script src="~/Scripts/Dynamic.js"></script>
 <script>
     $(function () {
         $("#blurInfo").hide();
+        console.log("fuck");
+        $("#AAButton").hide();
+        $("#RabiesButton").hide();
+        $("#loader").shCircleLoader({ color: "Red" });
     })
 </script>
 
@@ -62,7 +59,7 @@
     </div>
     <div class="form-group">
         <label class="control-label">疾病类型：</label>
-        <select class="form-control" name="SickType">
+        <select class="form-control" name="SickType" id="SickType">
             @foreach (Sick sicktype in Enum.GetValues(typeof(Sick)))
             {
                 <option value="@(sicktype.ToString())">@(sicktype.GetDescription())</option>
@@ -72,7 +69,7 @@
     <div class="form-group">
         <label class="control-label">行政区：</label>
         <select class="form-control" name="XZC">
-            @foreach (var xzc in xzcs)
+            @foreach (var xzc in GISManager.GetXZC())
             {
                 <option value="@(xzc)">@(xzc)</option>
             }
@@ -90,22 +87,21 @@
         <a href="#" id="btn-chart-time" class="btn btn-primary">时间对比</a>
     </div>
     <div class="form-group">
-        <a href="#" id="btn-chart-xzc" class="btn btn-primary">地区对比</a>
+        <a href="#" id="btn-chart-area" class="btn btn-primary">地区对比</a>
     </div>
     <div class="form-group">
-        <a href="#" id="btn-chart-sick" class="btn btn-primary">病种对比</a>
+        <a href="#" id="btn-chart-type" class="btn btn-primary">病种对比</a>
     </div>
     <input type="hidden" id="control-click-btn" name="type" />
 </form>
-@*<script src="~/Scripts/Chart.js"></script>*@
 <div id="chart1" class="chart">
-    <iframe src="/map/chart?type=time" class="iframe"></iframe>
+    <canvas id="canvas-chart1"></canvas>
 </div>
 <div id="chart2" class="chart">
-    <iframe src="/map/chart?type=xzc" class="iframe"></iframe>
+    <canvas id="canvas-chart2"></canvas>
 </div>
 <div id="chart3" class="chart">
-    <iframe src="/map/chart?type=sick" class="iframe"></iframe>
+    <canvas id="canvas-chart3"></canvas>
 </div>
 <div id="map" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'center'">
 </div>
@@ -123,7 +119,9 @@
 </div>
 <div id="timeInfo">
     <div>当前日期为：<span id="modern"></span></div>
+    <button id="AAButton" class="btn btn-xs btn-success"><i class="glyphicon glyphicon-play"></i></button>
     <div id="timeSliderDivAA"></div>
+    <button id="RabiesButton" class="btn btn-xs btn-success"><i class="glyphicon glyphicon-play"></i></button>
     <div id="timeSliderDivRabies"></div>
 </div>
 <script>
@@ -134,5 +132,76 @@
         var mapHeight = clientHeight - headerHeight - footerHeight;
 
         $("#map").height(mapHeight);
+
+        $("#btn-chart-area").click(function () {
+            loadCharts("xzc");
+            return false;
+        });
+
+        $("#btn-chart-time").click(function () {
+            loadCharts("time");
+            return false;
+        });
+
+        $("#btn-chart-type").click(function () {
+            loadCharts("sick");
+            return false;
+        });
+
+        function loadCharts(clickBtn) {
+            $("#control-click-btn").val(clickBtn);
+            var data = $("#menu").serialize();
+            $.getJSON("/map/getchartdata", data, function (json) {
+                console.log(json);
+                switch (clickBtn) {
+                    case "sick":
+                        loadSickChart(json);
+                        break;
+                    case "time":
+                        loadTimeChart(json);
+                        break;
+                    case "xzc":
+                        loadXzcChart(json);
+                        break;
+                }
+            });
+        }
+
+        function loadTimeChart(data) {
+            var labels = [];
+            var datas = [];
+            for (var i in data) {
+                var time = new Date(i);
+                labels.push(time.getYear() + "-" + time.getMonth() + "-" + time.getDate());
+                datas.push(data[i]);
+            }
+            var ctx = $("#canvas-chart1").get(0).getContext("2d");
+            var chartData = {
+                labels: labels,
+                datasets: [
+                    {
+                        label: "发病趋势图",
+                        fillColor: "rgba(220,220,220,0.2)",
+                        strokeColor: "rgba(220,220,220,1)",
+                        pointColor: "rgba(220,220,220,1)",
+                        pointStrokeColor: "#ccc",
+                        pointHighlightFill: "#ccc",
+                        pointHighlightStroke: "rgba(220,220,220,1)",
+                        data: datas
+                    }
+                ]
+            };
+            new Chart(ctx).Line(chartData, {
+                bezierCurve: false
+            });
+        }
+
+        function loadXzcChart(data) {
+            
+        }
+
+        function loadSickChart(data) {
+
+        }
     });
 </script>

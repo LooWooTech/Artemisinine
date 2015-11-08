@@ -17,7 +17,7 @@ var data = [
     { id: 23, Time: new Date("10/08/2015"), hid: 20, FBT: 30,Ellipse:22 }, { id: 22, Time: new Date("10/09/2015"), hid: 21, FBT: 31,Ellipse:21 },
     { id: 21, Time: new Date("10/10/2015"), hid: 22, FBT: 32,Ellipse:20 }, { id: 20, Time: new Date("10/11/2015"), hid: 23, FBT: 33,Ellipse:19 },
     { id: 19, Time: new Date("10/12/2015"), hid: 24, FBT: 34,Ellipse:18 }
-]
+]//当前疾病数据配置信息
 
 var sicktypes = new Array("Rabies", "AA");
 var datas = new Array();//记录当前使用数据
@@ -40,6 +40,7 @@ var current;//即将切换到的图层序号
 var Serial=0;//当前查看疾病序号（指向哪种疾病）
 var Type = "Place";//记录当前图层类型
 var sickType = "Rabies";//记录当前疾病类型
+var PlayFlag = false;//播放标记
 require([
        "esri/map", "esri/layers/ArcGISDynamicMapServiceLayer", "esri/layers/ImageParameters", "esri/layers/RasterLayer",
        "esri/layers/ArcGISTiledMapServiceLayer", "esri/renderers/HeatmapRenderer",
@@ -73,7 +74,6 @@ require([
         opacity: 0.5
     });
     map.addLayer(tiled);
-
     var blurDiv = dom.byId("blurInfo");
     var blurCtrl = dom.byId("blurControl");
     var maxCtrl = dom.byId("maxControl");
@@ -86,7 +86,6 @@ require([
         maxPixelIntensity: maxCtrl.value,
         minPixelIntensity: minCtrl.value
     });
-
     //热度图事件
     var sliders = document.querySelectorAll(".blurInfo p~input[type=range]");
     var addLiveValue = function (ctrl) {
@@ -99,7 +98,6 @@ require([
     for (var i = 0; i < sliders.length; i++) {
         addLiveValue(sliders.item(i));
     }
-
     blurCtrl.addEventListener("change", function (evt) {
         var r = +evt.target.value;
         if (r !== heatmapRenderer.blurRadius) {
@@ -107,7 +105,6 @@ require([
             heatlayers[current].redraw();
         }
     });
-
     maxCtrl.addEventListener("change", function (evt) {
         var r = +evt.target.value;
         if (r !== heatmapRenderer.maxPixelIntensity) {
@@ -115,7 +112,6 @@ require([
             heatlayers[current].redraw();
         }
     });
-
     minCtrl.addEventListener("change", function (evt) {
         var r = +evt.target.value;
         if (r !== heatmapRenderer.minPixelIntensity) {
@@ -123,7 +119,6 @@ require([
             heatlayers[current].redraw();
         }
     });
-
     valCtrl.addEventListener("change", function (evt) {
         var chk = evt.target.checked;
         if (!chk) {
@@ -140,9 +135,6 @@ require([
         heatmapRenderer.field = (chk) ? "Data" : null;
         heatlayers[current].redraw();
     });
-
-
-
     //医疗点数据
     var HLayer = new FeatureLayer(host + "/arcgis/rest/services/Data/MapServer/0", {
         mode: FeatureLayer.MODE_SNAPSHOT,
@@ -150,7 +142,6 @@ require([
         outFields: ["*"],
         infoTemplate: new InfoTemplate("医疗机构", "医疗机构：${NAME}<br/>机构ID：${JGID}<br/>ZZJGDM:${ZZJGDM}<br/>XZDM:${XZDM}" )
     });
-
     //点击医疗机构图层事件
     HLayer.on("click", function (evt) {
         var grapicAttributes = evt.graphic.attributes;
@@ -158,10 +149,8 @@ require([
     })
     //医疗机构图例
     var Hrenderer = new SimpleRenderer(new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 5, new SimpleLineSymbol(SimpleFillSymbol.STYLE_SOLID, new Color([255, 255, 255]), 1), new Color([255, 255, 255])));
-
    // HLayer.setRenderer(Hrenderer);
     map.addLayer(HLayer);
-
     //疾病数据图例
     var renderer = new SimpleRenderer(new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 20, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255, 0, 0, 0]), 0), new Color([255, 255, 255])));
     renderer.setColorInfo({
@@ -182,11 +171,8 @@ require([
         valueUnit: "unknown"
     });
     //椭圆图图例
-
     var ellipsesymbol = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([128, 255, 128]), 4), new Color([0, 0, 0, 0.25]));
-   
     var ellipseRenderer = new UniqueValueRenderer(ellipsesymbol);
-
     //切换图层
     var maptype = dojo.byId("MapType");
     dojo.connect(maptype, "onchange", function SelectChange() {
@@ -228,11 +214,10 @@ require([
             default: break;
         }
     }
-
-
     //疾病类型切换
     var sickbtn = dom.byId("SickType");
     dojo.connect(sickbtn, "onchange", function () {
+        Loading();
         console.log("疾病类型切换");
         ClearFeatureLayers();
         ClearHeatLayers();
@@ -243,14 +228,15 @@ require([
         AddDynamicLayer();
         var time = GetTime();
         timeExtentChange(time);
-
+        Loaded();
     });
-
     //疾病类型切换
     function SickChange() {
         $("#timeSliderDiv" + sickType).hide();
+        $("#" + sickType + "Button").hide();
         sickType = sickbtn.value;
         $("#timeSliderDiv" + sickType).show();
+        $("#" + sickType + "Button").show();
         switch (sickType) {
             case "AA":
                 data = Info.AA;
@@ -260,7 +246,6 @@ require([
                 break;
         }
     }
-
     //获取当前选中疾病类型中的当前时间点
     function GetTime() {
         console.log(sickType);
@@ -274,80 +259,12 @@ require([
                 slider = RabiesSlider;
                 break;
         }
-        var time = slider.getCurrentTimeExtent().startTime;
-        console.log(time);
+        var timeExtent = slider.getCurrentTimeExtent();
+        console.log("startTime:" + timeExtent.startTime + " EndTime:" + timeExtent.endTime);
+        var time = slider.getCurrentTimeExtent().endTime;
+        //console.log(time);
         return time;
     }
-
-
-   
-
-    //切换时间点时间
-
-    /*
-    timeSlider.on("time-extent-change", function () {
-        timeExtentChange();
-    });
-    */
-
-    
-    /*
-    var timeExtentChange = function (evt) {
-        var currentTime = evt.endTime;
-        //dom.byId("modern").innerHTML = "<i>" + currentTime.getFullYear() + "年" + (currentTime.getMonth() + 1) + "月" + currentTime.getDate() + "日";
-        for (var i = 0; i < data.length; i++) {
-            if (data[i].Time.toString() == currentTime.toString()) {
-                line = current;
-                current = i;
-                console.log(current);
-                break;
-            }
-        }
-        console.log("Line:" + line + "  Current:" + current+"Serial:"+Serial);
-
-        if (current == undefined) {
-            return;
-        }
-        var value = maptype.value;
-        
-        switch (value) {
-            case "Place"://医疗机构
-                HLayer.setVisibility(true);
-                return;
-            case "Situation"://疾病数据
-                layers[current].setVisibility(true);
-                console.log("医疗疾病数据从图层编号：" + line + "切换到图层编号：" + current);
-                ShowerSituation();
-                console.log("医疗疾病数据渐变结束");
-                break;
-            case "Heat"://热度图
-                domUtils.show(blurDiv);
-                heatlayers[current].setVisibility(true);
-                console.log("热力图层从编号：" + line + "切换到图层编号为：" + current);
-                ShowerHeat();
-                console.log("热力图渐变结束");
-                break;
-            case "Onset"://发病图
-                if (current != undefined) {
-                    FBLayers[current].setVisibility(true);
-                    map.addLayer(FBLayers[current]);
-                    FBLayers[current].setOpacity(0);
-                }
-                
-                ShowerOnset();
-                console.log("发病图渐变结束");
-                break;
-            case "Ellipse":
-                if (current != undefined) {
-                    map.addLayer(Ellipses[current]);
-                    Ellipses[current].setOpacity(0);
-                }
-                ShowEllipse();
-                break;
-            default: break;
-        }
-    }*/
-
     //时间进度条发生改变时间
     function timeExtentChange(currentTime) {
         dom.byId("modern").innerHTML = "<i>" + currentTime.getFullYear() + "年" + (currentTime.getMonth() + 1) + "月" + currentTime.getDate() + "日";
@@ -374,6 +291,16 @@ require([
                 console.log("医疗疾病数据从图层编号：" + line + "切换到图层编号：" + current);
                 ShowerSituation(function () {
                     console.log("医疗疾病数据渐变结束");
+                    if (current == (data.length - 1)) {
+                        console.log("到达最后一个时间点");
+                        TimeSliderStop();
+
+                    } else {
+                        if (PlayFlag) {
+                            TimeSliderPlay();
+                        }
+                    }
+                    
                 });
                 
                 break;
@@ -381,8 +308,17 @@ require([
                 domUtils.show(blurDiv);
                 heatlayers[current].setVisibility(true);
                 console.log("热力图层从编号：" + line + "切换到图层编号为：" + current);
-                ShowerHeat();
-                console.log("热力图渐变结束");
+                ShowerHeat(function () {
+                    console.log("热度图渐变结束");
+                    if (current == (data.length - 1)) {
+                        console.log("达到最后一个时间点");
+                        TimeSliderStop();
+                    } else {
+                        if (PlayFlag) {
+                            TimeSliderPlay();
+                        }
+                    }
+                });
                 break;
             case "Onset"://发病图
                 if (current != undefined) {
@@ -391,22 +327,38 @@ require([
                     FBLayers[current].setOpacity(0);
                 }
 
-                ShowerOnset();
-                console.log("发病图渐变结束");
+                ShowerOnset(function () {
+                    console.log("发病图渐变结束");
+                    if (current == (data.length - 1)) {
+                        console.log("到达最后一个时间点");
+                        TimeSliderStop();
+                    } else {
+                        if (PlayFlag) {
+                            TimeSliderPlay();
+                        }
+                    }
+                });
                 break;
             case "Ellipse":
                 if (current != undefined) {
                     map.addLayer(Ellipses[current]);
                     Ellipses[current].setOpacity(0);
                 }
-                ShowEllipse();
+                ShowEllipse(function () {
+                    console.log("椭圆图渐变结束");
+                    if (current == (data.length - 1)) {
+                        console.log("到达最后一个时间点");
+                        TimeSliderStop();
+                    } else {
+                        if (PlayFlag) {
+                            TimeSliderPlay();
+                        }
+                    }
+                });
                 break;
             default: break;
         }
     }
-
-    
-
     //疾病数据渐变
     var ShowerSituation = function (completefunc) {
         
@@ -426,94 +378,112 @@ require([
         } else {
             completefunc();
         }
-    
-        
-     /*   var opacity = layers[current].opacity;
-        if (opacity < 1) {
-            opacity += 0.05;
-            layers[current].setOpacity(opacity);
-            if (line != undefined && line !== current) {
-                layers[line].setOpacity(1 - opacity);
-                if (Number(1 - opacity) === 0) {
-                    layers[line].setVisibility(false);
-                    completefunc();
-                }
-                console.log("图层" + line + "透明度：" + layers[line].opacity + ";  图层" + current + "透明度：" + layers[current].opacity);
-            }
-
-            setTimeout(ShowerSituation, 50);
-        }*/
-        /*
-        var opacity = AllLayers[Serial][current].opacity;
-        if (opacity < 1) {
-            opacity += 0.05;
-            AllLayers[Serial][current].setOpacity(opacity);
-            if (line != undefined && line !== current) {
-                AllLayers[Serial][line].setOpacity(1 - opacity);
-                if (Number(1 - opacity) === 0) {
-                    AllLayers[Serial][line].setVisibility(false);
-                }
-            }
-            setTimeout(ShowerSituation, 20);
-        }*/
     }
-
     //热度图数据渐变
-    var ShowerHeat = function () {
-        var opacity = heatlayers[current].opacity;
-        if (opacity < 1) {
-            opacity += 0.05;
-            heatlayers[current].setOpacity(opacity);
-            if (line != undefined && line !== current) {
-                heatlayers[line].setOpacity(1 - opacity);
-                if (Number(1 - opacity) === 0) {
-                    flag = false;
-                    heatlayers[line].setVisibility(false);
-                }
+    var ShowerHeat = function (completefunc) {
+        var lyr = heatlayers[current];
+        if (lyr.opacityCount == undefined) lyr.opacityCount = 20;
+        if (lyr.opacityCount && lyr.opacityCount > 0) {
+            lyr.opacityCount--;
+            lyr.setOpacity(1 - lyr.opacityCount * 0.05);
+
+            if (line!=undefined && line != current) {
+                var lyr2 = heatlayers[line];
+                lyr2.setOpacity(lyr.opacityCount * 0.05);
                 console.log("图层" + line + "透明度:" + heatlayers[line].opacity + "; 图层" + current + "透明度：" + heatlayers[current].opacity);
+                if (lyr.opacityCount == 0) lyr2.setVisibility(false);
             }
-            setTimeout(ShowerHeat, 20);
+            setTimeout(function () { ShowerHeat(completefunc); }, 50);
+        } else {
+            completefunc();
         }
+        //var opacity = heatlayers[current].opacity;
+        //if (opacity < 1) {
+        //    opacity += 0.05;
+        //    heatlayers[current].setOpacity(opacity);
+        //    if (line != undefined && line !== current) {
+        //        heatlayers[line].setOpacity(1 - opacity);
+        //        if (Number(1 - opacity) === 0) {
+        //            heatlayers[line].setVisibility(false);
+        //        }
+        //        console.log("图层" + line + "透明度:" + heatlayers[line].opacity + "; 图层" + current + "透明度：" + heatlayers[current].opacity);
+        //    }
+        //    setTimeout(ShowerHeat, 20);
+        //}
         
     }
-
     //发病图数据渐变
-    var ShowerOnset = function () {
-        var opacity = FBLayers[current].opacity;
-        if (opacity < 1) {
-            opacity += 0.05;
-            FBLayers[current].setOpacity(opacity);
-            if (line != undefined && line !== current) {
-                FBLayers[line].setOpacity(1 - opacity);
-                if (Number(1 - opacity) === 0) {
-                    FBLayers[line].setVisibility(false);
-                    map.removeLayer(FBLayers[line]);
+    var ShowerOnset = function (completefunc) {
+        var lyr = FBLayers[current];
+        if (lyr.opacityCount == undefined) lyr.opacityCount = 20;
+        if (lyr.opacityCount && lyr.opacityCount > 0) {
+            lyr.opacityCount--;
+            lyr.setOpacity(1 - lyr.opacityCount * 0.05);
+            if (line!=undefined && line != current) {
+                var lyr2 = FBLayers[line];
+                lyr2.setOpacity(lyr.opacityCount * 0.05);
+                if (lyr.opacityCount == 0) {
+                    lyr2.setVisibility(false);
+                    map.removeLayer(lyr2);
                 }
             }
-            setTimeout(ShowerOnset, 20);
+            setTimeout(function () { ShowerOnset(completefunc); }, 50);
+        } else {
+            completefunc();
         }
+
+
+
+        //var opacity = FBLayers[current].opacity;
+        //if (opacity < 1) {
+        //    opacity += 0.05;
+        //    FBLayers[current].setOpacity(opacity);
+        //    if (line != undefined && line !== current) {
+        //        FBLayers[line].setOpacity(1 - opacity);
+        //        if (Number(1 - opacity) === 0) {
+        //            FBLayers[line].setVisibility(false);
+        //            map.removeLayer(FBLayers[line]);
+        //        }
+        //    }
+        //    setTimeout(ShowerOnset, 20);
+        //}
     }
     //椭圆图数据渐变
-    var ShowEllipse = function () {
-        var opacity = Ellipses[current].opacity;
-        if (opacity < 1) {
-            opacity += 0.05;
-            Ellipses[current].setOpacity(opacity);
-            if (line != undefined && line !== current) {
-                Ellipses[line].setOpacity(1 - opacity);
-                if (Number(1 - opacity) === 0) {
-                    map.removeLayer(Ellipses[line]);
+    var ShowEllipse = function (completefunc) {
+        var lyr = Ellipses[current];
+        if (lyr.opacityCount == undefined) lyr.opacityCount = 20;
+        if (lyr.opacityCount && lyr.opacityCount > 0) {
+            lyr.opacityCount--;
+            lyr.setOpacity(1 - lyr.opacityCount * 0.05);
+            if (line!=undefined && line != current) {
+                var lyr2 = Ellipses[line];
+                lyr2.setOpacity(lyr.opacityCount * 0.05);
+                if (lyr.opacityCount == 0) {
+                    //lyr2.setVisibility(false);
+                    map.removeLayer(lyr2);
                 }
             }
-            setTimeout(ShowEllipse, 20);
+            setTimeout(function () { ShowEllipse(completefunc); }, 50);
+        } else {
+            completefunc();
         }
+        //var opacity = Ellipses[current].opacity;
+        //if (opacity < 1) {
+        //    opacity += 0.05;
+        //    Ellipses[current].setOpacity(opacity);
+        //    if (line != undefined && line !== current) {
+        //        Ellipses[line].setOpacity(1 - opacity);
+        //        if (Number(1 - opacity) === 0) {
+        //            map.removeLayer(Ellipses[line]);
+        //        }
+        //    }
+        //    setTimeout(ShowEllipse, 20);
+        //}
     }
-
     //获取服务链接
     function GetLayerUrl(MapService) {
         return host + "/arcgis/rest/services/" + MapService + "/MapServer/";
     }
-
     //清除疾病数据图层
     function ClearFeatureLayers() {
         var count = layers.length;
@@ -542,7 +512,6 @@ require([
             map.removeLayer(FBLayers[i]);
         }
     }
-
     //添加疾病数据和热力图
     function AddAllFeatureLayers() {
         
@@ -569,7 +538,6 @@ require([
         map.addLayers(layers);
         map.addLayers(heatlayers);
     }
-
     //添加椭圆图和发病图
     function AddDynamicLayer() {
         
@@ -586,7 +554,6 @@ require([
         }
         
     }
-
     //根据不同疾病数据，创建不同的时间进度条
     function CreateTimeSlider() {
        
@@ -624,57 +591,69 @@ require([
             console.log("StartTime:" + timeExtent.startTime + "EndTime:" + timeExtent.endTime);
             timeExtentChange(timeExtent.endTime);
         })
-        /*
-        var SHU=new Array();
-        var temp=new Array();
-        var count = 0;
-        var IDNAME = "";
-        for (var i = 0; i < sicktypes.length; i++) {
-            IDNAME = sicktypes[i];
-            console.log(sicktypes[i]);
-            switch (sicktypes[i]) {
-                case "AA":
-                    count = Info.AA.length;
-                    for (var j = 0; j < count; j++) {
-                        temp[j] = Info.AA[j].Time;
-                        console.log(temp[j]);
-                    }
-                    break;
-                case "Rabies":
-                    count = Info.Rabies.length;
-                    for (var j = 0; j < count; j++) {
-                        temp[j] = Info.Rabies[j].Time;
-                        console.log(temp[j]);
-                    }
-                    break;
-                default: break;
-            }
-            IDNAME = "timeSliderDiv" + IDNAME;
-            TimeSliders[i] = new TimeSlider({
-                style: "width:100%"
-            }, dom.byId(IDNAME));
-           
-            TimeSliders[i].setTimeStops(temp);
-            TimeSliders[i].startup();
-            var slider = TimeSliders[i];
-            dojo.connect(TimeSliders[i], "onTimeExtentChange", extentChanged);
-          
-            $("#" + IDNAME).hide();
-        }*/
+    }
+    //时间进度条播放
+    function TimeSliderPlay() {
+        var sicktype = sickbtn.value;
+        switch (sicktype) {
+            case "AA":
+                AATimeSlider.next();
+                break;
+            case "Rabies":
+                RabiesSlider.next();
+                break;
+        }
     }
 
-    //map.on("update-start", function () {
-    //    $("#masker").show();
-    //})
+    
+    //时间进度条点击事件
+    var AAPlay = dom.byId("AAButton");
+    var RabiesPlay = dom.byId("RabiesButton");
 
-    //map.on("update-end", function () {
-    //    $("#masker").hide();
-    //});
+    dojo.connect(AAPlay, "click", function () {
+        if (PlayFlag) {//true->false 暂停
+            PlayFlag = false;
+            AAPlay.innerHTML = "<i class='glyphicon glyphicon-play'></i>";
+            
+        } else {//false->true  播放
+            PlayFlag = true;
+            AAPlay.innerHTML = "<i class='glyphicon glyphicon-pause'></i>";
+            AATimeSlider.next();
+        }
+        console.log(PlayFlag);     
+    });
+    dojo.connect(RabiesPlay, "click", function () {
+        console.log(PlayFlag);
+        if (PlayFlag) {
+            PlayFlag = false;
+            RabiesPlay.innerHTML = "<i class='glyphicon glyphicon-play'></i>";
+        } else {
+            PlayFlag = true;
+            RabiesPlay.innerHTML = "<i class='glyphicon glyphicon-pause'></i>";
+            RabiesSlider.next();
+        }
+        console.log(PlayFlag);
+    });
+
+    function TimeSliderStop() {
+        var sicktype = sickbtn.value;
+        PlayFlag = false;
+        switch (sicktype) {
+            case "AA":
+                AAPlay.innerHTML = "<i class='glyphicon glyphicon-play'></i>";
+                break;
+            case "Rabies":
+                RabiesPlay.innerHTML = "<i class='glyphicon glyphicon-play'></i>";
+                break;
+        }
+    }
+
 
     //加载所有的疾病数据图层
     map.on("load", function () {
         //创建所有疾病的时间进度条
         console.log("load结束");
+        Loading();
         CreateTimeSlider();
         console.log("创建时间进度条OK了");
         SickChange();
@@ -684,15 +663,42 @@ require([
         }
         AddAllFeatureLayers();
         AddDynamicLayer();
-        console.log("OK");
+        Loaded();
+        $(".tsPlayButton").hide();
+        
     });
 
-    //map.on("load", function () {
-    //    console.log("loading....");
-    //});
+    function Loading() {
+        $("#masker").show();
+    }
 
+    function Loaded() {
+        $("#masker").hide();
+    }
 
+    var chartTime = dom.byId("btn-chart-time");
+    var chartXzc = dom.byId("btn-chart-xzc");
+    var chartSick = dom.byId("btn-chart-sick");
 
+    dojo.connect(chartXzc, "click", function () {
+        var xzc = dom.byId("XZC").value;
+        var sickType = sickbtn.value;
+        var beginTime = dom.byId("BeginTime").value;
+        var endTime = dom.byId("EndTime").value;
+        console.log("XZC:" + xzc + "sicktype:" + sickType + "beginTime:" + beginTime + "endTime:" + endTime);
+        $("#chart2").append("<div class='alert alert-dismissable' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><iframe src='/map/chart?type=xzc&&xzc=" + xzc + "&&sickType=" + sickType + "&&beginTime=" + beginTime + "&&endTime=" + endTime + "' class='iframe'></iframe></div>");
+    });
+    dojo.connect(chartTime, "click", function () {
+        var xzc = dom.byId("XZC").value;
+        var sickType = sickbtn.value;
+        $("#chart1").append("<div class='alert alert-dismissable' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><iframe src='/map/chart?type=time&&xzc=" + xzc + "&&sickType=" + sickType + "' class='iframe'></iframe></div>");
+    });
+
+    dojo.connect(chartSick, "click", function () {
+        var beginTime = dom.byId("BeginTime").value;
+        var xzc = dom.byId("XZC").value;
+        $("#chart3").append("<div class='alert alert-dismissable' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><iframe src='/map/chart?type=sick&&xzc=" + xzc + "&&beginTime=" + beginTime + "' class='iframe'></iframe></div>");
+    });
 
     //搜索
     var s = new Search({
