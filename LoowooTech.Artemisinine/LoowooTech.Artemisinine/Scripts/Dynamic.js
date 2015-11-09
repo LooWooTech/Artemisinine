@@ -676,29 +676,29 @@ require([
         $("#masker").hide();
     }
 
-    var chartTime = dom.byId("btn-chart-time");
-    var chartXzc = dom.byId("btn-chart-xzc");
-    var chartSick = dom.byId("btn-chart-sick");
+    //var chartTime = dom.byId("btn-chart-time");
+    //var chartXzc = dom.byId("btn-chart-xzc");
+    //var chartSick = dom.byId("btn-chart-sick");
 
-    dojo.connect(chartXzc, "click", function () {
-        var xzc = dom.byId("XZC").value;
-        var sickType = sickbtn.value;
-        var beginTime = dom.byId("BeginTime").value;
-        var endTime = dom.byId("EndTime").value;
-        console.log("XZC:" + xzc + "sicktype:" + sickType + "beginTime:" + beginTime + "endTime:" + endTime);
-        $("#chart2").append("<div class='alert alert-dismissable' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><iframe src='/map/chart?type=xzc&&xzc=" + xzc + "&&sickType=" + sickType + "&&beginTime=" + beginTime + "&&endTime=" + endTime + "' class='iframe'></iframe></div>");
-    });
-    dojo.connect(chartTime, "click", function () {
-        var xzc = dom.byId("XZC").value;
-        var sickType = sickbtn.value;
-        $("#chart1").append("<div class='alert alert-dismissable' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><iframe src='/map/chart?type=time&&xzc=" + xzc + "&&sickType=" + sickType + "' class='iframe'></iframe></div>");
-    });
+    //dojo.connect(chartXzc, "click", function () {
+    //    var xzc = dom.byId("XZC").value;
+    //    var sickType = sickbtn.value;
+    //    var beginTime = dom.byId("BeginTime").value;
+    //    var endTime = dom.byId("EndTime").value;
+    //    console.log("XZC:" + xzc + "sicktype:" + sickType + "beginTime:" + beginTime + "endTime:" + endTime);
+    //    $("#chart2").append("<div class='alert alert-dismissable' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><iframe src='/map/chart?type=xzc&&xzc=" + xzc + "&&sickType=" + sickType + "&&beginTime=" + beginTime + "&&endTime=" + endTime + "' class='iframe'></iframe></div>");
+    //});
+    //dojo.connect(chartTime, "click", function () {
+    //    var xzc = dom.byId("XZC").value;
+    //    var sickType = sickbtn.value;
+    //    $("#chart1").append("<div class='alert alert-dismissable' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><iframe src='/map/chart?type=time&&xzc=" + xzc + "&&sickType=" + sickType + "' class='iframe'></iframe></div>");
+    //});
 
-    dojo.connect(chartSick, "click", function () {
-        var beginTime = dom.byId("BeginTime").value;
-        var xzc = dom.byId("XZC").value;
-        $("#chart3").append("<div class='alert alert-dismissable' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><iframe src='/map/chart?type=sick&&xzc=" + xzc + "&&beginTime=" + beginTime + "' class='iframe'></iframe></div>");
-    });
+    //dojo.connect(chartSick, "click", function () {
+    //    var beginTime = dom.byId("BeginTime").value;
+    //    var xzc = dom.byId("XZC").value;
+    //    $("#chart3").append("<div class='alert alert-dismissable' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><iframe src='/map/chart?type=sick&&xzc=" + xzc + "&&beginTime=" + beginTime + "' class='iframe'></iframe></div>");
+    //});
 
     //搜索
     var s = new Search({

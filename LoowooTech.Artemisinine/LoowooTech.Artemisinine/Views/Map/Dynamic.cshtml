@@ -7,13 +7,6 @@
 <div id="masker" style="background:#000;text-align:center;width:100%;position:absolute;bottom:0px;top:60px;z-index:999;">
     <div id="loader" style="width: 112px; height: 112px;margin:40px auto;"></div>
 </div>
-@*<script type="text/javascript">
-    $('#loader').shCircleLoader();
-    window.onload = function () {
-        $('#loader').shCircleLoader('destroy');
-        $("#masker").remove();
-    };
-</script>*@
 <style>
     body, #map { margin: 0; padding: 0; background-color: black; }
     #map_zoom_slider { top: 90px; }
@@ -21,16 +14,15 @@
     #HomeButton { position: absolute; top: 115px; left: 20px; z-index: 50; }
     #timeInfo { display: block; padding: 5px; position: absolute; /* top: 65px; */ /* left: 80px; */ text-align: center; /* width: 1000px; */ z-index: 99; bottom: 0px; left: 200px; right: 200px; }
     #menu { position: absolute; z-index: 2; top: 225px; left: 20px; }
-    .blurInfo { position: absolute; top: 10px; right: 5px; font-size: 1.25em; font-family: monospace; color: #4C4C4C; width: 240px; background-color: #FFFFFF; padding: 10px; border: 2px solid #57585A; border-radius: 20px; }
-        .blurInfo p span { background-color: #FFFFFF; padding: 0 5px; border-radius: 5px; }
+    .blurInfo { position: absolute; top: 65px; right: 5px; /* font-size: 1em; */ font-family: monospace; color: #FFFFFF; width: 240px; background-color: rgba(99, 99, 99, 0.62); padding: 10px; /* border: 1px solid #57585A; */ /* border-radius: 0px; */ }
+        .blurInfo p span { /* background-color: #FFFFFF; */ padding: 0 5px; /* border-radius: 5px; */ }
         .blurInfo input[type=range] { width: 100%; display: block; }
-    .chart { position: absolute;  color: #999; background-color: rgba(255, 255, 255, 0.22); height: 150px; }
-    #chart1 { top: 62px; right: 0px; }
-    #chart2 { top: 300px; right: 0px; }
-    #chart3 { right: 0px; bottom: 0px; }
+    .chart { position: absolute; color: #999; background-color: rgba(255, 255, 255, 0.22); height: 150px; border: none; }
+    #chart1 { bottom: 302px; right: 0px; }
+    #chart2 { bottom: 151px; right: 0px; }
+    #chart3 { bottom: 0px; right: 0px; }
     .dijitRuleMark, .dijitSliderBar { border-color: white; }
 </style>
-@*<script src="~/Scripts/Chart.js"></script>*@
 <script src="~/Maps/Info.js"></script>
 <script src="~/Scripts/Dynamic.js"></script>
 <script>
@@ -87,22 +79,15 @@
         <a href="#" id="btn-chart-time" class="btn btn-primary">时间对比</a>
     </div>
     <div class="form-group">
-        <a href="#" id="btn-chart-area" class="btn btn-primary">地区对比</a>
+        <a href="#" id="btn-chart-xzc" class="btn btn-primary">地区对比</a>
     </div>
     <div class="form-group">
-        <a href="#" id="btn-chart-type" class="btn btn-primary">病种对比</a>
+        <a href="#" id="btn-chart-sick" class="btn btn-primary">病种对比</a>
     </div>
-    <input type="hidden" id="control-click-btn" name="type" />
 </form>
-<div id="chart1" class="chart">
-    <canvas id="canvas-chart1"></canvas>
-</div>
-<div id="chart2" class="chart">
-    <canvas id="canvas-chart2"></canvas>
-</div>
-<div id="chart3" class="chart">
-    <canvas id="canvas-chart3"></canvas>
-</div>
+<iframe id="chart1" class="chart"></iframe>
+<iframe id="chart2" class="chart"></iframe>
+<iframe id="chart3" class="chart"></iframe>
 <div id="map" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'center'">
 </div>
 <div class="blurInfo" id="blurInfo">
@@ -133,75 +118,22 @@
 
         $("#map").height(mapHeight);
 
-        $("#btn-chart-area").click(function () {
-            loadCharts("xzc");
+        $("#btn-chart-xzc").click(function () {
+            var data = $("#menu").serialize();
+            $("#chart1").attr("src", "/map/chart?type=xzc&" + data);
             return false;
         });
 
         $("#btn-chart-time").click(function () {
-            loadCharts("time");
-            return false;
-        });
-
-        $("#btn-chart-type").click(function () {
-            loadCharts("sick");
-            return false;
-        });
-
-        function loadCharts(clickBtn) {
-            $("#control-click-btn").val(clickBtn);
             var data = $("#menu").serialize();
-            $.getJSON("/map/getchartdata", data, function (json) {
-                console.log(json);
-                switch (clickBtn) {
-                    case "sick":
-                        loadSickChart(json);
-                        break;
-                    case "time":
-                        loadTimeChart(json);
-                        break;
-                    case "xzc":
-                        loadXzcChart(json);
-                        break;
-                }
-            });
-        }
+            $("#chart2").attr("src", "/map/chart?type=time&" + data);
+            return false;
+        });
 
-        function loadTimeChart(data) {
-            var labels = [];
-            var datas = [];
-            for (var i in data) {
-                var time = new Date(i);
-                labels.push(time.getYear() + "-" + time.getMonth() + "-" + time.getDate());
-                datas.push(data[i]);
-            }
-            var ctx = $("#canvas-chart1").get(0).getContext("2d");
-            var chartData = {
-                labels: labels,
-                datasets: [
-                    {
-                        label: "发病趋势图",
-                        fillColor: "rgba(220,220,220,0.2)",
-                        strokeColor: "rgba(220,220,220,1)",
-                        pointColor: "rgba(220,220,220,1)",
-                        pointStrokeColor: "#ccc",
-                        pointHighlightFill: "#ccc",
-                        pointHighlightStroke: "rgba(220,220,220,1)",
-                        data: datas
-                    }
-                ]
-            };
-            new Chart(ctx).Line(chartData, {
-                bezierCurve: false
-            });
-        }
-
-        function loadXzcChart(data) {
-            
-        }
-
-        function loadSickChart(data) {
-
-        }
+        $("#btn-chart-sick").click(function () {
+            var data = $("#menu").serialize();
+            $("#chart3").attr("src", "/map/chart?type=sick&" + data);
+            return false;
+        });
     });
 </script>
