@@ -48,6 +48,7 @@ require([
        "esri/layers/FeatureLayer", "esri/InfoTemplate", "esri/dijit/Search",
        "esri/renderers/ClassBreaksRenderer", "esri/Color","esri/renderers/UniqueValueRenderer", "esri/renderers/BlendRenderer", "esri/renderers/SimpleRenderer", "esri/symbols/SimpleFillSymbol", "esri/symbols/SimpleLineSymbol", "esri/symbols/SimpleMarkerSymbol",
        "esri/dijit/HomeButton",
+       "esri/dijit/Popup","esri/dijit/PopupTemplate","dojo/dom-class","dojo/dom-construct","dojox/charting/Chart","dojox/charting/themes/Dollar",
        "esri/tasks/RelationshipQuery","esri/domUtils","dojo/parser",
        "dojo/domReady!"
 ], function (
@@ -57,6 +58,7 @@ require([
        FeatureLayer, InfoTemplate, Search,
        ClassBreaksRenderer, Color,UniqueValueRenderer, BlendRenderer, SimpleRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol,
        HomeButton,
+       Popup,PopupTemplate,domClass,domConstruct,Chart,theme,
        RelationshipQuery,domUtils,parser
        ) {
     var map = new Map("map", {
@@ -135,12 +137,41 @@ require([
         heatmapRenderer.field = (chk) ? "Data" : null;
         heatlayers[current].redraw();
     });
+
+    var fill = new SimpleFillSymbol("solid", null, new Color("#A4CE67"));
+    var popup = new Popup({
+        fillSymbol: fill,
+        titleInBody: false
+    }, domConstruct.create("div"));
+    domClass.add(popup.domNode, "dark");
+
+    var template = new PopupTemplate({
+        title: "各疾病发病率",
+        description: "医疗机构：{NAME}<br/>机构ID：{JGID}<br/>ZZJGDM:{ZZJGDM}<br/>XZDM:{XZDM}",
+        fieldInfos: [{
+            fieldName: "Rabies00",
+            label: "00"
+        }, {
+            fieldName: "AA01",
+            label: "01"
+        }],
+        mediaInfos: [{
+            caption: "",
+            type: "barchart",
+            value: {
+                theme: "Dollar",
+                fields: ["Rabies00", "AA01"]
+            }
+        }]
+    });
+
     //医疗点数据
     var HLayer = new FeatureLayer(host + "/arcgis/rest/services/Data/MapServer/0", {
         mode: FeatureLayer.MODE_SNAPSHOT,
         opacity: 1,
         outFields: ["*"],
-        infoTemplate: new InfoTemplate("医疗机构", "医疗机构：${NAME}<br/>机构ID：${JGID}<br/>ZZJGDM:${ZZJGDM}<br/>XZDM:${XZDM}" )
+        infoTemplate:template
+        //infoTemplate: new InfoTemplate("医疗机构", "医疗机构：${NAME}<br/>机构ID：${JGID}<br/>ZZJGDM:${ZZJGDM}<br/>XZDM:${XZDM}" )
     });
     //点击医疗机构图层事件
     HLayer.on("click", function (evt) {
@@ -173,6 +204,12 @@ require([
     //椭圆图图例
     var ellipsesymbol = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([128, 255, 128]), 4), new Color([0, 0, 0, 0.25]));
     var ellipseRenderer = new UniqueValueRenderer(ellipsesymbol);
+
+    var ellipseLocusLayer = new FeatureLayer(GetLayerUrl("Ellipse2") + "36", {
+        mode: FeatureLayer.MODE_SNAPSHOT,
+        opacity:0.8
+    });
+
     //切换图层
     var maptype = dojo.byId("MapType");
     dojo.connect(maptype, "onchange", function SelectChange() {
@@ -209,6 +246,7 @@ require([
                 ClearFBLayers();
                 break;
             case "Ellipse":
+                map.removeLayer(ellipseLocusLayer);
                 ClearEllipseLayers();
                 break;
             default: break;
@@ -288,9 +326,12 @@ require([
             case "Situation"://疾病数据
                 layers[current].setVisibility(true);
                 layers[current].opacityCount = 20;
-                console.log("医疗疾病数据从图层编号：" + line + "切换到图层编号：" + current);
+                //console.log("医疗疾病数据从图层编号：" + line + "切换到图层编号：" + current);
                 ShowerSituation(function () {
                     console.log("医疗疾病数据渐变结束");
+                    layers[line].setOpacity(0);
+                    layers[line].setVisibility(false);
+                    
                     if (current == (data.length - 1)) {
                         console.log("到达最后一个时间点");
                         TimeSliderStop();
@@ -307,6 +348,7 @@ require([
             case "Heat"://热度图
                 domUtils.show(blurDiv);
                 heatlayers[current].setVisibility(true);
+                heatlayers[current].opacityCount = 20;
                 console.log("热力图层从编号：" + line + "切换到图层编号为：" + current);
                 ShowerHeat(function () {
                     console.log("热度图渐变结束");
@@ -323,6 +365,7 @@ require([
             case "Onset"://发病图
                 if (current != undefined) {
                     FBLayers[current].setVisibility(true);
+                    FBLayers[current].opacityCount = 20;
                     map.addLayer(FBLayers[current]);
                     FBLayers[current].setOpacity(0);
                 }
@@ -339,10 +382,12 @@ require([
                     }
                 });
                 break;
-            case "Ellipse":
+            case "Ellipse"://椭圆图
+                map.addLayer(ellipseLocusLayer);
                 if (current != undefined) {
                     map.addLayer(Ellipses[current]);
                     Ellipses[current].setOpacity(0);
+                    Ellipses[current].opacityCount = 20;
                 }
                 ShowEllipse(function () {
                     console.log("椭圆图渐变结束");
@@ -391,7 +436,11 @@ require([
                 var lyr2 = heatlayers[line];
                 lyr2.setOpacity(lyr.opacityCount * 0.05);
                 console.log("图层" + line + "透明度:" + heatlayers[line].opacity + "; 图层" + current + "透明度：" + heatlayers[current].opacity);
-                if (lyr.opacityCount == 0) lyr2.setVisibility(false);
+                if (lyr.opacityCount == 0) {
+                    lyr2.setOpacity(0);
+                    lyr2.setVisibility(false);
+                }
+                    
             }
             setTimeout(function () { ShowerHeat(completefunc); }, 50);
         } else {
@@ -547,7 +596,7 @@ require([
                 visible:false
             });
             FBLayers[i].setVisibleLayers([data[i].FBT]);
-            Ellipses[i] = new FeatureLayer(GetLayerUrl("Ellipse") + data[i].Ellipse, {
+            Ellipses[i] = new FeatureLayer(GetLayerUrl("Ellipse2") + data[i].Ellipse, {
                 opacity: 0,
             });
             Ellipses[i].setRenderer(ellipseRenderer);
@@ -686,18 +735,20 @@ require([
         var beginTime = dom.byId("BeginTime").value;
         var endTime = dom.byId("EndTime").value;
         console.log("XZC:" + xzc + "sicktype:" + sickType + "beginTime:" + beginTime + "endTime:" + endTime);
-        $("#chart2").append("<div class='alert alert-dismissable' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><iframe src='/map/chart?type=xzc&&xzc=" + xzc + "&&sickType=" + sickType + "&&beginTime=" + beginTime + "&&endTime=" + endTime + "' class='iframe'></iframe></div>");
+        $("#chart").append("<div class='alert alert-dismissable WJL col-lg-3' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><h5>" + beginTime + "到" + endTime + sickType + "区域发病对比图</h5><iframe src='/map/Chart?type=xzc&&xzc=" + xzc + "&&sickType=" + sickType + "&&beginTime=" + beginTime + "&&endTime=" + endTime + "' class='iframe'></iframe></div>");
+
     });
     dojo.connect(chartTime, "click", function () {
         var xzc = dom.byId("XZC").value;
         var sickType = sickbtn.value;
-        $("#chart1").append("<div class='alert alert-dismissable' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><iframe src='/map/chart?type=time&&xzc=" + xzc + "&&sickType=" + sickType + "' class='iframe'></iframe></div>");
+        $("#chart").append("<div class='alert alert-dismissable WJL col-lg-3' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><h5>" + xzc + sickType + "发病趋势图</h5><iframe src='/map/Chart?type=time&&xzc=" + xzc + "&&sickType=" + sickType + "' class='iframe'></iframe></div>");
+
     });
 
     dojo.connect(chartSick, "click", function () {
         var beginTime = dom.byId("BeginTime").value;
         var xzc = dom.byId("XZC").value;
-        $("#chart3").append("<div class='alert alert-dismissable' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><iframe src='/map/chart?type=sick&&xzc=" + xzc + "&&beginTime=" + beginTime + "' class='iframe'></iframe></div>");
+        $("#chart").append("<div class='alert alert-dismissable WJL col-lg-3' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><h5>" + beginTime + xzc + "多种疾病对比图</h5><iframe src='/map/Chart?type=sick&&xzc=" + xzc + "&&beginTime=" + beginTime + "' class='iframe'></iframe></div>");
     });
 
     //搜索

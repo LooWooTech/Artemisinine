@@ -80,5 +80,25 @@ namespace LoowooTech.Artemisinine.Common
             SSB.Insert(Index + 7, datasb);
             return SSB.ToString();
         }
+
+        public static Dictionary<string, double> Transform(this Dictionary<DateTime, List<Disease>> Dict)
+        {
+            var answer = new Dictionary<string, double>();
+            foreach (var list in Dict.Values)
+            {
+                foreach (var item in list)
+                {
+                    if (answer.ContainsKey(item.JGID))
+                    {
+                        answer[item.JGID] += item.Data;
+                    }
+                    else
+                    {
+                        answer.Add(item.JGID, item.Data);
+                    }
+                }
+            }
+            return answer;
+        }
     }
 }

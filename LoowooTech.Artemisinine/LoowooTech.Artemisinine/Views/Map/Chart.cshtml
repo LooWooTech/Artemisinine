@@ -9,6 +9,7 @@
     <title>Chart</title>
     <script src="~/Scripts/jquery-1.9.1.min.js"></script>
     <script src="~/Scripts/Chart.js"></script>
+    <script src="~/Scripts/jquery.shCircleLoader-min.js"></script>
 <style>
     body{padding:0;margin:0;overflow:hidden;}
 </style>
@@ -19,10 +20,35 @@
     <script>
         $(function () {
             var data = @Html.Raw((ViewBag.Data as object).ToJson());
-                @switch (type)
+            @switch (type)
             {
                     case "xzc":
                         <text>
+            var labels = [];
+            var datas = [];
+            for(var item in data){
+                labels.push(item);
+                datas.push(data[item]);
+            }
+            var ctx = $("#canvas-chart").get(0).getContext("2d");
+            var chartData = {
+                labels: labels,
+                datasets: [
+                    {
+                        label: "地区对比图",
+                        fillColor: "rgba(220,220,220,0.2)",
+                        strokeColor: "rgba(220,220,220,1)",
+                        pointColor: "rgba(220,220,220,1)",
+                        pointStrokeColor: "#ccc",
+                        pointHighlightFill: "#ccc",
+                        pointHighlightStroke: "rgba(220,220,220,1)",
+                        data: datas
+                    }
+                ]
+            };
+            new Chart(ctx).Bar(chartData, {
+                bezierCurve: false, barValueSpacing: 50, barStrokeWidth: 0,
+            });
                 </text>
                         break;
                     case "time":
@@ -86,7 +112,7 @@
                             bezierCurve: false, barValueSpacing: 50, barStrokeWidth: 0,
                         });
 
-                        </text>
+            </text>
                         break;
                 }
         });

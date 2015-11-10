@@ -85,6 +85,32 @@ namespace LoowooTech.Artemisinine.Controllers
             }
             catch { }
             ViewBag.Data = data;
+            ViewBag.Type = type;
+            ViewBag.XZC = xzc;
+            if (sickType == null)
+            {
+                ViewBag.SickType = "";
+            }
+            else
+            {
+                ViewBag.SickType = sickType.Value;
+            }
+            if (beginTime == null)
+            {
+                ViewBag.StartTime = null;
+            }
+            else
+            {
+                ViewBag.StartTime = beginTime.Value;
+            }
+            if (endTime == null)
+            {
+                ViewBag.EndTime = null;
+            }
+            else
+            {
+                ViewBag.EndTime = endTime.Value;
+            }
             return View();
         }
     }

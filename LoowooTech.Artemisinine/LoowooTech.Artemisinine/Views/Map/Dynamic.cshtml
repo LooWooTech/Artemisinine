@@ -37,16 +37,70 @@
     #chart3 { right: 0px; bottom: 0px; }
     .dijitRuleMark, .dijitSliderBar { border-color: white; }
     .iframe{border:none;overflow:hidden;}
+    .show{background:#7cd2f8;position:absolute;z-index:1;left:200px;top:70px;}
+    .WJLChart{position:absolute;right:0; top:80px;bottom:100px;}
+    .WJL{position:relative;background-color: rgba(50, 50, 50, 0.8);float:right;display:block;z-index:1;margin:6px;}
 </style>
 <script src="~/Maps/Info.js"></script>
 <script src="~/Scripts/Dynamic.js"></script>
 <script>
+
+    function hook() {
+        $(".show").mousedown(function (e)//e鼠标事件  
+        {
+            console.log("start move");
+            $(this).css("cursor", "move");//改变鼠标指针的形状  
+
+            var offset = $(this).offset();//DIV在页面的位置  
+            var x = e.pageX - offset.left;//获得鼠标指针离DIV元素左边界的距离  
+            var y = e.pageY - offset.top;//获得鼠标指针离DIV元素上边界的距离  
+            $(document).bind("mousemove", function (ev)//绑定鼠标的移动事件，因为光标在DIV元素外面也要有效果，所以要用doucment的事件，而不用DIV元素的事件  
+            {
+                $(".show").stop();//加上这个之后  
+
+                var _x = ev.pageX - x;//获得X轴方向移动的值  
+                var _y = ev.pageY - y;//获得Y轴方向移动的值  
+
+                $(".show").animate({ left: _x + "px", top: _y + "px" }, 10);
+            });
+
+        });
+    }
     $(function () {
         $("#blurInfo").hide();
         console.log("fuck");
         $("#AAButton").hide();
         $("#RabiesButton").hide();
+        $("#Bill").hide();
         $("#loader").shCircleLoader({ color: "Red" });
+        $("#ExcelBtn").click(function () {
+            $("#Bill").toggle();
+        })
+
+        $(".show").mousedown(function (e)//e鼠标事件  
+        {
+            console.log("start move");
+            $(this).css("cursor", "move");//改变鼠标指针的形状  
+
+            var offset = $(this).offset();//DIV在页面的位置  
+            var x = e.pageX - offset.left;//获得鼠标指针离DIV元素左边界的距离  
+            var y = e.pageY - offset.top;//获得鼠标指针离DIV元素上边界的距离  
+            $(document).bind("mousemove", function (ev)//绑定鼠标的移动事件，因为光标在DIV元素外面也要有效果，所以要用doucment的事件，而不用DIV元素的事件  
+            {
+                $(".show").stop();//加上这个之后  
+
+                var _x = ev.pageX - x;//获得X轴方向移动的值  
+                var _y = ev.pageY - y;//获得Y轴方向移动的值  
+
+                $(".show").animate({ left: _x + "px", top: _y + "px" }, 10);
+            });
+
+        });
+
+        $(document).mouseup(function () {
+            $(".show").css("cursor", "default");
+            $(this).unbind("mousemove");
+        })
     })
 </script>
 
@@ -73,34 +127,45 @@
             }
         </select>
     </div>
-    <div class="form-group">
-        <label class="control-label">行政区：</label>
-        <select class="form-control" name="XZC" id="XZC">
-            @foreach (var xzc in xzcs)
-            {
-                <option value="@(xzc)">@(xzc)</option>
-            }
-        </select>
+    <button type="button" class="btn btn-primary btn-xs" id="ExcelBtn">新增图表</button>
+    <div id="Bill">
+        <div class="form-group">
+            <label class="control-label">行政区：</label>
+            <select class="form-control" name="XZC" id="XZC">
+                @foreach (var xzc in xzcs)
+                {
+                    <option value="@(xzc)">@(xzc)</option>
+                }
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="control-label">起始时间：</label>
+            <input type="text" name="BeginTime" id="BeginTime" value="2015-9-4" class="form-control" style="width:120px;" />
+        </div>
+        <div class="form-group">
+            <label class="control-label">结束时间：</label>
+            <input type="text" name="EndTime" id="EndTime" value="2015-10-25" class="form-control" style="width:120px;" />
+        </div>
+        <div class="form-group">
+            <a href="#" id="btn-chart-time" class="btn btn-primary">时间对比</a>
+        </div>
+        <div class="form-group">
+            <a href="#" id="btn-chart-xzc" class="btn btn-primary">地区对比</a>
+        </div>
+        <div class="form-group">
+            <a href="#" id="btn-chart-sick" class="btn btn-primary">病种对比</a>
+        </div>
     </div>
-    <div class="form-group">
-        <label class="control-label">起始时间：</label>
-        <input type="text" name="BeginTime" id="BeginTime" value="2015-9-4" class="form-control" style="width:120px;" />
-    </div>
-    <div class="form-group">
-        <label class="control-label">结束时间：</label>
-        <input type="text" name="EndTime" id="EndTime" value="2015-10-25" class="form-control" style="width:120px;" />
-    </div>
-    <div class="form-group">
-        <a href="#" id="btn-chart-time" class="btn btn-primary">时间对比</a>
-    </div>
-    <div class="form-group">
-        <a href="#" id="btn-chart-xzc" class="btn btn-primary">地区对比</a>
-    </div>
-    <div class="form-group">
-        <a href="#" id="btn-chart-sick" class="btn btn-primary">病种对比</a>
-    </div>
+    
     <input type="hidden" id="control-click-btn" name="type" />
 </form>
+<div class="row">
+    <div id="chart" class="WJLChart col-lg-10 col-lg-offset-2">
+
+    </div>
+</div>
+
+
 <div id="chart1" class="chart">
 
 </div>

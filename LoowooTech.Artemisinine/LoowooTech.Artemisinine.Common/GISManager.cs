@@ -14,7 +14,13 @@ namespace LoowooTech.Artemisinine.Common
 {
     public static class GISManager
     {
+        /// <summary>
+        /// 医疗机构数据本地路径
+        /// </summary>
         private static string HospitalPath { get; set; }
+        /// <summary>
+        /// 医疗机构名称
+        /// </summary>
         private static string HospitalName { get; set; }
         private static XmlDocument configXml { get; set; }
         private static string Server { get; set; }
@@ -163,6 +169,14 @@ namespace LoowooTech.Artemisinine.Common
             }
             return list;
         }
+        /// <summary>
+        /// 在FeatureWorkspace中创建FeatureClass  并且根据配置文件获取字段信息
+        /// </summary>
+        /// <param name="featureWorkspace"></param>
+        /// <param name="Name"></param>
+        /// <param name="esriGeometryType"></param>
+        /// <param name="ObjectID"></param>
+        /// <returns></returns>
         private static IFeatureClass Create(IFeatureWorkspace featureWorkspace, string Name, esriGeometryType esriGeometryType,string ObjectID)
         {
             IFields pFields = new FieldsClass();
@@ -217,6 +231,42 @@ namespace LoowooTech.Artemisinine.Common
             IObjectClassDescription objectClassDescription = featureClassDescription as IObjectClassDescription;
             IFeatureClass featureClass = featureWorkspace.CreateFeatureClass(Name, pFields, objectClassDescription.InstanceCLSID, objectClassDescription.ClassExtensionCLSID, esriFeatureType.esriFTSimple, "shape", "");
             return featureClass;
+        }
+        /// <summary>
+        /// 对已存在的featurClass中添加字段
+        /// </summary>
+        /// <param name="FeatureClass"></param>
+        /// <param name="FieldName"></param>
+        /// <param name="FieldType"></param>
+        /// <returns></returns>
+        private static IFeatureClass AddField(IFeatureClass FeatureClass, string FieldName, string FieldType="String")
+        {
+            if (FeatureClass == null)
+            {
+                System.Console.WriteLine("在featureClass中添加字段的时候，featureClass为null");
+                return null;
+            }
+            IClass pclass=FeatureClass as IClass;
+            IFieldsEdit fieldsEdit = pclass.Fields as IFieldsEdit;
+            IField field = new FieldClass();
+            IFieldEdit2 fieldEdit = field as IFieldEdit2;
+            switch(FieldType){
+                case "String":
+                    fieldEdit.Type_2 = esriFieldType.esriFieldTypeString;
+                    break;
+                case "Double":
+                    fieldEdit.Type_2 = esriFieldType.esriFieldTypeDouble;
+                    break;
+                case "Date":
+                    fieldEdit.Type_2 = esriFieldType.esriFieldTypeDate;
+                    break;
+                default:
+                    fieldEdit.Type_2 = esriFieldType.esriFieldTypeString;
+                    break;
+            }
+            fieldEdit.Name_2 = FieldName;
+            pclass.AddField(field);
+            return FeatureClass;
         }
         private static SField GetPoint(string JGID, IFeatureClass FeatureClas, int Index,int IndexGDM,int IndexDM)
         {
@@ -368,7 +418,6 @@ namespace LoowooTech.Artemisinine.Common
             }
             return true;
         }
-
         private static District Search(string Code)
         {
             foreach (var item in XZQList)
@@ -530,6 +579,7 @@ namespace LoowooTech.Artemisinine.Common
             int IndexGDM = HFeatureClass.Fields.FindField("ZZJGDM");
             int IndexDM = HFeatureClass.Fields.FindField("XZDM");
             var list = new List<DateTime>();
+            var JGIDDict = new Dictionary<string, double>();//JGID对应的疾病值
             foreach (var key in Dict.Keys)
             {
                 var featureClassName=string.Format("{0}{1}{2}{3}",Thing+SicknessName, key.Year.ToString("0000"), key.Month.ToString("00"), key.Day.ToString("00"));
@@ -734,10 +784,17 @@ namespace LoowooTech.Artemisinine.Common
             }
             return dict;
         }
-
-        private static Dictionary<DateTime, double> GetComparisonBase(DateTime startTime, TimeSpan span, string XZC, Sick sicktype)
+        /// <summary>
+        ///某个时间段内的某个行政区内某种疾病的疾病发病总值
+        /// </summary>
+        /// <param name="startTime"></param>
+        /// <param name="span"></param>
+        /// <param name="XZC"></param>
+        /// <param name="sicktype"></param>
+        /// <returns></returns>
+        private static double GetComparisonBase(DateTime startTime, TimeSpan span, string XZC, Sick sicktype)
         {
-            var dict = new Dictionary<DateTime, double>();
+            double value = 0.0;
             for (var i = 0; i < span.Days; i++)
             {
                 var time=startTime.AddDays(i);
@@ -745,17 +802,12 @@ namespace LoowooTech.Artemisinine.Common
                 var featureClass = GetFeatureClass(SDEWorkspace, featureClassName);
                 if (featureClass != null)
                 {
-                    if (!dict.ContainsKey(time))
-                    {
-                        dict.Add(time, Statistics(featureClass, "Data", "XZC='" + XZC + "'"));
-                    }
+                    value += Statistics(featureClass, "Data", "XZC='" + XZC + "'");
                 }
                 
             }
-            return dict;
+            return value;
         }
-
-
         /// <summary>
         /// 某个时间段之内某种疾病各区域对比图
         /// </summary>
@@ -763,11 +815,11 @@ namespace LoowooTech.Artemisinine.Common
         /// <param name="EndTime">结束时间</param>
         /// <param name="sicktype">疾病类型</param>
         /// <returns>行政区对应的每个时间点的发病值</returns>
-        public static Dictionary<string, Dictionary<DateTime,double>> GetComparison(DateTime StartTime,DateTime EndTime, Sick sicktype)
+        public static Dictionary<string, double> GetComparison(DateTime StartTime,DateTime EndTime, Sick sicktype)
         {
-            var dict=new Dictionary<string, Dictionary<DateTime,double>>();
-            var span = EndTime - StartTime;
+            var dict = new Dictionary<string, double>();
             var xzc = GetXZC();
+            TimeSpan span=EndTime-StartTime;
             if (xzc != null)
             {
                 foreach (var item in xzc)
@@ -786,7 +838,6 @@ namespace LoowooTech.Artemisinine.Common
         /// <param name="Time">时间</param>
         /// <param name="XZC">区域</param>
         /// <returns>每个疾病对应的疾病值</returns>
-
         public static Dictionary<string,double> GetComparison(DateTime Time, string XZC)
         {
             var dict = new Dictionary<string, double>();
@@ -803,6 +854,68 @@ namespace LoowooTech.Artemisinine.Common
                 }
             }
             return dict;
+        }
+        public static void UpdateHopsitalData(Dictionary<string, double> Dict, string Thing)
+        {
+            if (SDEWorkspace == null)
+            {
+                SDEWorkspace = OpenSde();
+            }
+            IFeatureClass HFeatureClass = GetFeatureClass(SDEWorkspace, HospitalName);
+            int Index = HFeatureClass.Fields.FindField(Thing);
+            if (Index == -1)
+            {
+                Console.WriteLine("在医疗机构中未找到相关的字段信息，即将创建字段：" + Thing);
+                //IClass pclass=HFeatureClass as IClass;
+                //IFieldsEdit fieldsEdit = pclass.Fields as IFieldsEdit;
+                //IField field = new FieldClass();
+                //IFieldEdit2 fieldEdit = field as IFieldEdit2;
+                //fieldEdit.Type_2 = esriFieldType.esriFieldTypeDouble;
+                //fieldEdit.Name_2 = Thing;
+                //pclass.AddField(field);
+                HFeatureClass = AddField(HFeatureClass, Thing, "Double");
+                Index = HFeatureClass.Fields.FindField(Thing);
+            }
+            IQueryFilter queryFilter = new QueryFilterClass();
+            IFeatureCursor featureCursor = null;
+            IFeature feature = null;
+            foreach (var key in Dict.Keys)
+            {
+                queryFilter.WhereClause = "JGID='" + key + "'";
+                featureCursor = HFeatureClass.Search(queryFilter, false);
+                feature = featureCursor.NextFeature();
+                if (feature != null)
+                {
+                    feature.set_Value(Index, Dict[key]);
+                    feature.Store();
+                }
+            }
+        }
+
+        public static void UpdateValue()
+        {
+            if (SDEWorkspace == null)
+            {
+                SDEWorkspace = OpenSde();
+            }
+            IFeatureClass featureClass = GetFeatureClass(SDEWorkspace, HospitalName);
+            int Index = featureClass.Fields.FindField("Rabies00");
+            IFeatureCursor featureCursor = featureClass.Search(null, false);
+            IFeature feature = featureCursor.NextFeature();
+            int iSeed = 8;
+            Random ra = new Random(iSeed);
+            double val = 0.0;
+            int a = 1;
+            while (feature != null)
+            {
+                val =double.Parse(feature.get_Value(Index).ToString());
+                a = ra.Next(1, 20);
+                val = (double)(val / a);
+                feature.set_Value(Index, val);
+                feature.Store();
+                feature = featureCursor.NextFeature();
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(featureCursor);
         }
         
     }

@@ -20,6 +20,7 @@ namespace LoowooTech.Artemisinine.Console
                 return;
             }
             System.Console.WriteLine("成功完后ArcGIS授权！................................");
+            //GISManager.UpdateValue();
             var operate = new FileManager();
             var uploadfile = operate.GetAnalyzeFile();
             if (uploadfile != null)
@@ -27,7 +28,19 @@ namespace LoowooTech.Artemisinine.Console
                 System.Console.WriteLine("成功读取到文件：" + uploadfile.FileName);
                 var values = ExcelHelper.Analyze(uploadfile.SavePath, uploadfile.Thing, uploadfile.Year);
                 System.Console.WriteLine("开始保存到SDE中");
-                var rightTime=GISManager.Operate(values,uploadfile.Thing);
+                var rightTime = GISManager.Operate(values, uploadfile.Thing);
+                var JGIDDict = values.Transform();
+                try
+                {
+                    GISManager.UpdateHopsitalData(JGIDDict, uploadfile.Thing);
+                }
+                catch (Exception ex)
+                {
+                    System.Console.WriteLine(ex.Message);
+                    System.Console.ReadLine();
+                    return;
+                }
+
                 if (rightTime != null)
                 {
                     var recordTool = new RecordManager();
@@ -42,7 +55,7 @@ namespace LoowooTech.Artemisinine.Console
                 //GISManager.OperateSum(values, uploadfile.Thing);
                 System.Console.WriteLine("完成");
             }
-
+            //System.Console.WriteLine("success");
             System.Console.ReadLine();
             LicenseManager.ShutDown();
             System.Console.WriteLine("成功关闭ArcGIS授权！................................");
