@@ -57,10 +57,8 @@
                         var datas = [];
                         for (var i in data) {
                             var time = new Date(i);
-                            console.log(time);
-                            console.log(time.getDate())
                             labels.push((1900 +time.getYear()) + "-" + (1+time.getMonth()) + "-" + time.getDate());
-                            datas.push(data[i]);
+                            datas.push(data[i].toFixed());
                         }
                         var ctx = $("#canvas-chart").get(0).getContext("2d");
                         var chartData = {

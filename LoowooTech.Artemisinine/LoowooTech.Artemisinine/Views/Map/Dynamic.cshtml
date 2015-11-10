@@ -14,13 +14,6 @@
 <div id="masker" style="background:#000;text-align:center;width:100%;position:absolute;bottom:0px;top:60px;z-index:999;">
     <div id="loader" style="width: 112px; height: 112px;margin:40px auto;"></div>
 </div>
-@*<script type="text/javascript">
-    $('#loader').shCircleLoader();
-    window.onload = function () {
-        $('#loader').shCircleLoader('destroy');
-        $("#masker").remove();
-    };
-</script>*@
 <style>
     body, #map { margin: 0; padding: 0; background-color: black; }
     #map_zoom_slider { top: 90px; }
@@ -204,5 +197,26 @@
         var mapHeight = clientHeight - headerHeight - footerHeight;
 
         $("#map").height(mapHeight);
+//<<<<<<< HEAD
+//=======
+
+//        $("#btn-chart-xzc").click(function () {
+//            var data = $("#menu").serialize();
+//            $("#chart1").attr("src", "/map/chart?type=xzc&" + data);
+//            return false;
+//        });
+
+//        $("#btn-chart-time").click(function () {
+//            var data = $("#menu").serialize();
+//            $("#chart2").attr("src", "/map/chart?type=time&" + data);
+//            return false;
+//        });
+
+//        $("#btn-chart-sick").click(function () {
+//            var data = $("#menu").serialize();
+//            $("#chart3").attr("src", "/map/chart?type=sick&" + data);
+//            return false;
+//        });
+//>>>>>>> origin/dev
     });
 </script>
