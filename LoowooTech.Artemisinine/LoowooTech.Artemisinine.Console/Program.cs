@@ -29,7 +29,7 @@ namespace LoowooTech.Artemisinine.Console
                 var values = ExcelHelper.Analyze(uploadfile.SavePath, uploadfile.Thing, uploadfile.Year);
                 System.Console.WriteLine("开始保存到SDE中");
                 var rightTime = GISManager.Operate(values, uploadfile.Thing);
-                var JGIDDict = values.Transform();
+                var JGIDDict = values.Transform();//将每个时间的疾病数据转换为医疗机构的疾病数据值
                 try
                 {
                     GISManager.UpdateHopsitalData(JGIDDict, uploadfile.Thing);

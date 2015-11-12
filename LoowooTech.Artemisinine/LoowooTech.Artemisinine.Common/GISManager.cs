@@ -34,8 +34,18 @@ namespace LoowooTech.Artemisinine.Common
         private static string CityName { get; set; }
         private static string CountyName { get; set; }
         private static IWorkspace SDEWorkspace { get; set; }
+        /// <summary>
+        /// 行政代码前四位  该代码下的行政村列表
+        /// </summary>
         private static Dictionary<string, List<District>> XZCDict { get; set; }
+        /// <summary>
+        /// 行政区列表
+        /// </summary>
         private static List<District> XZQList { get; set; }
+        /// <summary>
+        /// 医疗机构 所在的行政区行政村字典
+        /// </summary>
+        private static Dictionary<string, DistrictDict> JGDict { get; set; }
         static GISManager()
         {
             HospitalPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, System.Configuration.ConfigurationManager.AppSettings["HOSPITAL"]);
@@ -61,6 +71,45 @@ namespace LoowooTech.Artemisinine.Common
             CountyName = System.Configuration.ConfigurationManager.AppSettings["CNAME"];
             CityName = System.Configuration.ConfigurationManager.AppSettings["QNAME"];
             SDEWorkspace = OpenSde();
+        }
+        private static void InitJG()
+        {
+            if (SDEWorkspace == null)
+            {
+                SDEWorkspace = OpenSde();
+            }
+            InitSDE();
+            if (JGDict == null)
+            {
+                JGDict = new Dictionary<string, DistrictDict>();
+            }
+            var HFeatureClass = GetFeatureClass(SDEWorkspace, HospitalName);
+            if (HFeatureClass == null)
+            {
+                Console.WriteLine("未获取城市要素类、村界要素类或者医疗机构要素类");
+                return;
+            }
+            //医疗机构
+            int IndexJGID = HFeatureClass.Fields.FindField("JGID");
+            int IndexXZDM = HFeatureClass.Fields.FindField("XZDM");
+            
+            IFeatureCursor featureCursor = HFeatureClass.Search(null, false);
+            IFeature feature = featureCursor.NextFeature();
+            string JGID = string.Empty;
+            string XZDM = string.Empty;
+            while (feature != null)
+            {
+                JGID = feature.get_Value(IndexJGID).ToString().Trim();
+                XZDM = feature.get_Value(IndexJGID).ToString();
+                if (!string.IsNullOrEmpty(JGID))
+                {
+                    if (!JGDict.ContainsKey(JGID))
+                    {
+                        JGDict.Add(JGID, GetDistrict(XZDM));
+                    }
+                }
+            }
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(featureCursor);
         }
         private static void InitSDE()
         {
@@ -144,7 +193,34 @@ namespace LoowooTech.Artemisinine.Common
             System.Runtime.InteropServices.Marshal.ReleaseComObject(featureCursor);
             #endregion
 
-
+        }
+        /// <summary>
+        /// 根据XZDM获取 行政区行政村信息
+        /// </summary>
+        /// <param name="Code"></param>
+        /// <returns></returns>
+        private static DistrictDict GetDistrict(string Code)
+        {
+            if (string.IsNullOrEmpty(Code))
+            {
+                Console.WriteLine("输入的Code为null或者空");
+                return null;
+            }
+            var xkey = Code.Substring(0, 4);
+            if (XZCDict.ContainsKey(xkey))
+            {
+                var ykey = Code.Substring(0, 6).ToUpper();
+                var entry = XZCDict[xkey].FirstOrDefault(e => e.Code == ykey);
+                if (entry != null)
+                {
+                    return new DistrictDict()
+                    {
+                        XZC = entry,
+                        XZQ = Search(Code.Substring(0, 2))
+                    };
+                }
+            }
+            return null;
 
         }
         private static List<NField> GetInitFields()
@@ -418,6 +494,11 @@ namespace LoowooTech.Artemisinine.Common
             }
             return true;
         }
+        /// <summary>
+        /// 获取行政区
+        /// </summary>
+        /// <param name="Code">医疗机构 XZDM 前两位45</param>
+        /// <returns></returns>
         private static District Search(string Code)
         {
             foreach (var item in XZQList)
@@ -579,7 +660,7 @@ namespace LoowooTech.Artemisinine.Common
             int IndexGDM = HFeatureClass.Fields.FindField("ZZJGDM");
             int IndexDM = HFeatureClass.Fields.FindField("XZDM");
             var list = new List<DateTime>();
-            var JGIDDict = new Dictionary<string, double>();//JGID对应的疾病值
+            var keyDict = new Dictionary<DateTime, List<Disease>>();
             foreach (var key in Dict.Keys)
             {
                 var featureClassName=string.Format("{0}{1}{2}{3}",Thing+SicknessName, key.Year.ToString("0000"), key.Month.ToString("00"), key.Day.ToString("00"));
@@ -891,7 +972,33 @@ namespace LoowooTech.Artemisinine.Common
                 }
             }
         }
+        /// <summary>
+        /// 完善疾病数据中的行政区行政村字段
+        /// </summary>
+        /// <param name="Dict"></param>
+        /// <returns></returns>
+        public static List<Disease> Complete(Dictionary<DateTime, List<Disease>> Dict)
+        {
+            InitJG();
+            var list = new List<Disease>();
+            foreach (var body in Dict.Values)
+            {
+                foreach (var item in body)
+                {
+                    if (JGDict.ContainsKey(item.JGID))
+                    {
+                        item.XZC = JGDict[item.JGID].XZC.Name;
+                        item.XZQ = JGDict[item.JGID].XZQ.Name;
+                        list.Add(item);
+                    }
+                }
+            }
+            return list;
+        }
 
+        /// <summary>
+        /// 更新医疗机构的发病率（数据美观性）
+        /// </summary>
         public static void UpdateValue()
         {
             if (SDEWorkspace == null)

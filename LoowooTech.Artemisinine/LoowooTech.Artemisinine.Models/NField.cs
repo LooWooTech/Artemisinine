@@ -19,6 +19,11 @@ namespace LoowooTech.Artemisinine.Models
         public string ZZJGDM { get; set; }
         public string XZDM { get; set; }
     }
+    public class DistrictDict
+    {
+        public District XZC { get; set; }
+        public District XZQ { get; set; }
+    }
     
     public class District
     {

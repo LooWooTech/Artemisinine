@@ -14,5 +14,6 @@ namespace LoowooTech.Artemisinine.Manager
         public DbSet<User> Users { get; set; }
         public DbSet<UploadFile> Files { get; set; }
         public DbSet<Record> Records { get; set; }
+        public DbSet<Disease> Diseases { get; set; }
     }
 }

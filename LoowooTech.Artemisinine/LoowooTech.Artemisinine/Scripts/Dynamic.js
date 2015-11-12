@@ -49,7 +49,8 @@ require([
        "esri/renderers/ClassBreaksRenderer", "esri/Color","esri/renderers/UniqueValueRenderer", "esri/renderers/BlendRenderer", "esri/renderers/SimpleRenderer", "esri/symbols/SimpleFillSymbol", "esri/symbols/SimpleLineSymbol", "esri/symbols/SimpleMarkerSymbol",
        "esri/dijit/HomeButton",
        "esri/dijit/Popup","esri/dijit/PopupTemplate","dojo/dom-class","dojo/dom-construct","dojox/charting/Chart","dojox/charting/themes/Dollar",
-       "esri/tasks/RelationshipQuery","esri/domUtils","dojo/parser",
+       "esri/tasks/RelationshipQuery", "esri/domUtils", "dojo/parser",
+       "esri/dijit/Legend",
        "dojo/domReady!"
 ], function (
        Map, ArcGISDynamicMapServiceLayer, ImageParameters, RasterLayer,
@@ -59,7 +60,8 @@ require([
        ClassBreaksRenderer, Color,UniqueValueRenderer, BlendRenderer, SimpleRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol,
        HomeButton,
        Popup,PopupTemplate,domClass,domConstruct,Chart,theme,
-       RelationshipQuery,domUtils,parser
+       RelationshipQuery,domUtils,parser,
+       Legend
        ) {
     var map = new Map("map", {
         center:[108.363,23.094],
@@ -164,24 +166,41 @@ require([
             }
         }]
     });
+    //var barLayer = new FeatureLayer("http://10.22.102.18:6080/arcgis/rest/services/HOSPITAL/MapServer/0", {
+    //    mode: FeatureLayer.MODE_SNAPSHOT,
+    //    //outFields: ["*"],
+    //    //infoTemplate: new InfoTemplate("医疗机构", "医疗机构：${NAME}<br/>机构ID：${JGID}<br/>ZZJGDM:${ZZJGDM}<br/>XZDM:${XZDM}" )
+    //});
+   
+
 
     //医疗点数据
-    var HLayer = new FeatureLayer(host + "/arcgis/rest/services/Data/MapServer/0", {
-        mode: FeatureLayer.MODE_SNAPSHOT,
-        opacity: 1,
-        outFields: ["*"],
-        infoTemplate:template
-        //infoTemplate: new InfoTemplate("医疗机构", "医疗机构：${NAME}<br/>机构ID：${JGID}<br/>ZZJGDM:${ZZJGDM}<br/>XZDM:${XZDM}" )
-    });
+    //var HLayer = new FeatureLayer(host + "/arcgis/rest/services/Data/MapServer/0", {
+    //    mode: FeatureLayer.MODE_SNAPSHOT,
+    //    opacity: 1,
+    //    outFields: ["*"],
+    //    infoTemplate:template
+    //    //infoTemplate: new InfoTemplate("医疗机构", "医疗机构：${NAME}<br/>机构ID：${JGID}<br/>ZZJGDM:${ZZJGDM}<br/>XZDM:${XZDM}" )
+    //});
     //点击医疗机构图层事件
-    HLayer.on("click", function (evt) {
-        var grapicAttributes = evt.graphic.attributes;
-        console.log(grapicAttributes.JGID);
-    })
+    //HLayer.on("click", function (evt) {
+    //    var grapicAttributes = evt.graphic.attributes;
+    //    console.log(grapicAttributes.JGID);
+    //})
     //医疗机构图例
     var Hrenderer = new SimpleRenderer(new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 5, new SimpleLineSymbol(SimpleFillSymbol.STYLE_SOLID, new Color([255, 255, 255]), 1), new Color([255, 255, 255])));
-   // HLayer.setRenderer(Hrenderer);
+    // HLayer.setRenderer(Hrenderer);
+
+    var HLayer = new ArcGISDynamicMapServiceLayer(host+"/arcgis/rest/services/HOSPITAL/MapServer");
+    HLayer.setInfoTemplates({
+        0: { infoTemplate: new InfoTemplate("医疗机构", "医疗机构：${NAME}<br/>机构ID：${JGID}<br/>ZZJGDM:${ZZJGDM}<br/>XZDM:${XZDM}") }
+    });
     map.addLayer(HLayer);
+    var legend = new Legend({
+        map: map
+    }, "legendDiv");
+    legend.startup();
+    legend.refresh([{ layer: HLayer, title: '疾病图例' }]);
     //疾病数据图例
     var renderer = new SimpleRenderer(new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 20, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255, 0, 0, 0]), 0), new Color([255, 255, 255])));
     renderer.setColorInfo({
@@ -226,6 +245,7 @@ require([
         switch (Type) {
             case "Place":
                 HLayer.setVisibility(false);
+                $("#chart3").hide();
                 break;
             case "Situation":
                 count = layers.length;
@@ -321,6 +341,7 @@ require([
         var value = maptype.value;
         switch (value) {
             case "Place"://医疗机构
+                $("#chart3").show();
                 HLayer.setVisibility(true);
                 return;
             case "Situation"://疾病数据
@@ -706,7 +727,6 @@ require([
         CreateTimeSlider();
         console.log("创建时间进度条OK了");
         SickChange();
-        console.log("");
         for (var i = 0; i < data.length; i++) {
             console.log("id:" + data[i].id + "Time:" + data[i].Time + "FBT:" + data[i].FBT + "Ellipse:" + data[i].Ellipse + "hid:" + data[i].hid);
         }

@@ -58,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ARDbContext.cs" />
+    <Compile Include="DiseaseManager.cs" />
     <Compile Include="FileManager.cs" />
     <Compile Include="ManagerBase.cs" />
     <Compile Include="ManagerCore.cs" />
