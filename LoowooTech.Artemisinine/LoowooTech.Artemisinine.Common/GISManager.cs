@@ -936,6 +936,12 @@ namespace LoowooTech.Artemisinine.Common
             }
             return dict;
         }
+
+        /// <summary>
+        /// 在读取疾病数据之后，将疾病的数据统计在医疗机构图层中
+        /// </summary>
+        /// <param name="Dict">本次疾病数据 医疗机构对应的疾病值</param>
+        /// <param name="Thing">疾病名称</param>
         public static void UpdateHopsitalData(Dictionary<string, double> Dict, string Thing)
         {
             if (SDEWorkspace == null)
@@ -947,19 +953,13 @@ namespace LoowooTech.Artemisinine.Common
             if (Index == -1)
             {
                 Console.WriteLine("在医疗机构中未找到相关的字段信息，即将创建字段：" + Thing);
-                //IClass pclass=HFeatureClass as IClass;
-                //IFieldsEdit fieldsEdit = pclass.Fields as IFieldsEdit;
-                //IField field = new FieldClass();
-                //IFieldEdit2 fieldEdit = field as IFieldEdit2;
-                //fieldEdit.Type_2 = esriFieldType.esriFieldTypeDouble;
-                //fieldEdit.Name_2 = Thing;
-                //pclass.AddField(field);
                 HFeatureClass = AddField(HFeatureClass, Thing, "Double");
                 Index = HFeatureClass.Fields.FindField(Thing);
             }
             IQueryFilter queryFilter = new QueryFilterClass();
             IFeatureCursor featureCursor = null;
             IFeature feature = null;
+            double val = 0.0;
             foreach (var key in Dict.Keys)
             {
                 queryFilter.WhereClause = "JGID='" + key + "'";
@@ -967,7 +967,10 @@ namespace LoowooTech.Artemisinine.Common
                 feature = featureCursor.NextFeature();
                 if (feature != null)
                 {
-                    feature.set_Value(Index, Dict[key]);
+                    val = 0.0;
+                    val = double.Parse(feature.get_Value(Index).ToString());
+                    val += Dict[key];
+                    feature.set_Value(Index, val);
                     feature.Store();
                 }
             }
@@ -1023,6 +1026,11 @@ namespace LoowooTech.Artemisinine.Common
                 feature = featureCursor.NextFeature();
             }
             System.Runtime.InteropServices.Marshal.ReleaseComObject(featureCursor);
+        }
+
+        public static IFeatureClass GetH()
+        {
+            return GetFeatureClass(SDEWorkspace, HospitalName);
         }
         
     }

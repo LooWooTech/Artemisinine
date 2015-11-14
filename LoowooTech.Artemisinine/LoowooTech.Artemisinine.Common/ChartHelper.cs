@@ -81,6 +81,31 @@ namespace LoowooTech.Artemisinine.Common
             return SSB.ToString();
         }
 
+        /// <summary>
+        /// 将时间对应的疾病数据字典转换为医疗机构对应的疾病数据字典
+        /// </summary>
+        /// <param name="Dict"></param>
+        /// <returns></returns>
+        public static Dictionary<string, double> Transform(this Dictionary<DateTime, List<Sickness>> Dict)
+        {
+            var answer = new Dictionary<string, double>();
+            foreach (var list in Dict.Values)
+            {
+                foreach (var item in list)
+                {
+                    if (answer.ContainsKey(item.JGID))
+                    {
+                        answer[item.JGID] += item.Data;
+                    }
+                    else
+                    {
+                        answer.Add(item.JGID, item.Data);
+                    }
+                }
+            }
+            return answer;
+        }
+
         public static Dictionary<string, double> Transform(this Dictionary<DateTime, List<Disease>> Dict)
         {
             var answer = new Dictionary<string, double>();

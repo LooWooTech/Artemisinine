@@ -35,10 +35,11 @@ var layers = new Array();//每个时间段的疾病数据图层
 var heatlayers = new Array();//每个时间段的热度图图层
 var FBLayers = new Array();//每个时间段的发病图图层
 var Ellipses = new Array();//每个时间段的椭圆图
+var MSNLayers = new Array();//每个时间段的MSN图
 var line;//当前一个图层序号
 var current;//即将切换到的图层序号
 var Serial=0;//当前查看疾病序号（指向哪种疾病）
-var Type = "Place";//记录当前图层类型
+var Type = "Ward";//记录当前图层类型
 var sickType = "Rabies";//记录当前疾病类型
 var PlayFlag = false;//播放标记
 require([
@@ -191,7 +192,16 @@ require([
     var Hrenderer = new SimpleRenderer(new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 5, new SimpleLineSymbol(SimpleFillSymbol.STYLE_SOLID, new Color([255, 255, 255]), 1), new Color([255, 255, 255])));
     // HLayer.setRenderer(Hrenderer);
 
-    var HLayer = new ArcGISDynamicMapServiceLayer(host+"/arcgis/rest/services/HOSPITAL/MapServer");
+
+    var XZCLayer = new ArcGISDynamicMapServiceLayer(host + "/arcgis/rest/services/BARQ/MapServer");
+    XZCLayer.setInfoTemplates({
+        0: { infoTemplate: new InfoTemplate("行政区健康数据概况", "名称：${NAME}<br/>行政区代码:${CNTY_CODE}") }
+    });
+    map.addLayer(XZCLayer);
+
+    var HLayer = new ArcGISDynamicMapServiceLayer(host + "/arcgis/rest/services/HOSPITAL/MapServer", {
+        visible:false
+    });
     HLayer.setInfoTemplates({
         0: { infoTemplate: new InfoTemplate("医疗机构", "医疗机构：${NAME}<br/>机构ID：${JGID}<br/>ZZJGDM:${ZZJGDM}<br/>XZDM:${XZDM}") }
     });
@@ -200,7 +210,7 @@ require([
         map: map
     }, "legendDiv");
     legend.startup();
-    legend.refresh([{ layer: HLayer, title: '疾病图例' }]);
+    legend.refresh([{ layer: XZCLayer, title: '疾病图例' }]);
     //疾病数据图例
     var renderer = new SimpleRenderer(new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 20, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255, 0, 0, 0]), 0), new Color([255, 255, 255])));
     renderer.setColorInfo({
@@ -243,6 +253,10 @@ require([
         //当切换图层的时候，首先获取之前的图层模式，根据之前的图层模式，处理相应的数据设置
         var count = 0;
         switch (Type) {
+            case "Ward":
+                XZCLayer.setVisibility(false);
+                $("#chart3").hide();
+                break;
             case "Place":
                 HLayer.setVisibility(false);
                 $("#chart3").hide();
@@ -268,6 +282,9 @@ require([
             case "Ellipse":
                 map.removeLayer(ellipseLocusLayer);
                 ClearEllipseLayers();
+                break;
+            case "MSN":
+                ClearMSNLayers();
                 break;
             default: break;
         }
@@ -340,9 +357,15 @@ require([
         }
         var value = maptype.value;
         switch (value) {
+            case "Ward":
+                $("#chart3").show();
+                XZCLayer.setVisibility(true);
+                legend.refresh([{ layer: XZCLayer, title: '疾病图例' }]);
+                break;
             case "Place"://医疗机构
                 $("#chart3").show();
                 HLayer.setVisibility(true);
+                legend.refresh([{ layer: HLayer, title: '疾病图例' }]);
                 return;
             case "Situation"://疾病数据
                 layers[current].setVisibility(true);
@@ -350,8 +373,11 @@ require([
                 //console.log("医疗疾病数据从图层编号：" + line + "切换到图层编号：" + current);
                 ShowerSituation(function () {
                     console.log("医疗疾病数据渐变结束");
-                    layers[line].setOpacity(0);
-                    layers[line].setVisibility(false);
+                    if (line != current) {
+                        layers[line].setOpacity(0);
+                        layers[line].setVisibility(false);
+                    }
+                    
                     
                     if (current == (data.length - 1)) {
                         console.log("到达最后一个时间点");
@@ -402,6 +428,25 @@ require([
                         }
                     }
                 });
+                break;
+            case "MSN":
+                if (current != undefined) {
+                    MSNLayers[current].setVisibility(true);
+                    MSNLayers[current].opacityCount = 20;
+                    map.addLayer(MSNLayers[current]);
+                    MSNLayers[current].setOpacity(0);
+                }
+                ShowMSN(function () {
+                    console.log("MSN渐变结束");
+                    if (current == (data.length - 1)) {
+                        console.log("到达最后一个时间点");
+                        TimeSliderStop();
+                    } else {
+                        if (PlayFlag) {
+                            TimeSliderPlay();
+                        }
+                    }
+                })
                 break;
             case "Ellipse"://椭圆图
                 map.addLayer(ellipseLocusLayer);
@@ -501,22 +546,27 @@ require([
         } else {
             completefunc();
         }
-
-
-
-        //var opacity = FBLayers[current].opacity;
-        //if (opacity < 1) {
-        //    opacity += 0.05;
-        //    FBLayers[current].setOpacity(opacity);
-        //    if (line != undefined && line !== current) {
-        //        FBLayers[line].setOpacity(1 - opacity);
-        //        if (Number(1 - opacity) === 0) {
-        //            FBLayers[line].setVisibility(false);
-        //            map.removeLayer(FBLayers[line]);
-        //        }
-        //    }
-        //    setTimeout(ShowerOnset, 20);
-        //}
+    }
+    //MSN 渐变
+    var ShowMSN = function (completefunc) {
+        var lyr = MSNLayers[current];
+        if (lyr.opacityCount == undefined)
+            lyr.opacityCount = 20;
+        if (lyr.opacityCount && lyr.opacityCount > 0) {
+            lyr.opacityCount--;
+            lyr.setOpacity(1 - lyr.opacityCount * 0.05);
+            if (line != undefined && line != current) {
+                var lyr2 = MSNLayers[line];
+                lyr2.setOpacity(lyr.opacityCount * 0.05);
+                if (lyr.opacityCount == 0) {
+                    lyr2.setVisibility(false);
+                    map.removeLayer(lyr2);
+                }
+            }
+            setTimeout(function () { ShowMSN(completefunc); }, 50);
+        } else {
+            completefunc();
+        }
     }
     //椭圆图数据渐变
     var ShowEllipse = function (completefunc) {
@@ -582,6 +632,13 @@ require([
             map.removeLayer(FBLayers[i]);
         }
     }
+    //清除MSN数据图层
+    function ClearMSNLayers() {
+        var count = MSNLayers.length;
+        for (var i = 0; i < count; i++) {
+            map.removeLayer(MSNLayers[i]);
+        }
+    }
     //添加疾病数据和热力图
     function AddAllFeatureLayers() {
         
@@ -617,6 +674,12 @@ require([
                 visible:false
             });
             FBLayers[i].setVisibleLayers([data[i].FBT]);
+            MSNLayers[i] = new ArcGISDynamicMapServiceLayer(GetLayerUrl("MSN"), {
+                opacity: 0,
+                visible: false
+            });
+            MSNLayers[i].setVisibleLayers([data[i].MSN]);
+
             Ellipses[i] = new FeatureLayer(GetLayerUrl("Ellipse2") + data[i].Ellipse, {
                 opacity: 0,
             });

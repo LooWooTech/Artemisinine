@@ -68,7 +68,7 @@ namespace LoowooTech.Artemisinine.Common
         }
 
 
-        public static Dictionary<DateTime, List<Disease>> Analyze(string FilePath,string Thing,string Year=null)
+        public static Dictionary<DateTime, List<Sickness>> Analyze(string FilePath,string Thing,string Year=null)
         {
             var workbook = OpenWorkbook(FilePath);
             Console.WriteLine("成功打开Excel文件!");
@@ -76,7 +76,7 @@ namespace LoowooTech.Artemisinine.Common
             var row = sheet.GetRow(0);
             var dict = GetTimeRow(row,Year);
 
-            var valDict = new Dictionary<DateTime, List<Disease>>();
+            var valDict = new Dictionary<DateTime, List<Sickness>>();
             Console.WriteLine(string.Format("成功获取第一行时间数据！一共有{0}个时间数据", dict.Count));
 
             var lines = 1;
@@ -103,21 +103,25 @@ namespace LoowooTech.Artemisinine.Common
 
                         if (valDict.ContainsKey(time))
                         {
-                            valDict[time].Add(new Disease()
+                            valDict[time].Add(new Sickness()
                             {
                                 JGID = JGID,
                                 Data = val,
-                                Time = time,
+                                Year = time.Year,
+                                Month = time.Month,
+                                Day = time.Day,
                                 Thing = Thing
                             });
                         }
                         else
                         {
-                            valDict.Add(time, new List<Disease>(){new Disease(){
-                            JGID=JGID,
-                            Data=val,
-                            Time=time,
-                            Thing=Thing
+                            valDict.Add(time, new List<Sickness>(){new Sickness(){
+                                JGID=JGID,
+                                Data=val,
+                                Thing=Thing,
+                                Year=time.Year,
+                                Month=time.Month,
+                                Day=time.Day
                             }});
                         }
                     }

@@ -91,12 +91,12 @@
     <Compile Include="EnumExtensions.cs" />
     <Compile Include="ExcelHelper.cs" />
     <Compile Include="FileHelper.cs" />
+    <Compile Include="GISHelper.cs" />
     <Compile Include="GISManager.cs" />
     <Compile Include="JsonExtensions.cs" />
     <Compile Include="LicenseManager.cs" />
     <Compile Include="MapInfoManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SQLManager.cs" />
     <Compile Include="UploadHelper.cs" />
     <Compile Include="UserPrincipal.cs" />
   </ItemGroup>
